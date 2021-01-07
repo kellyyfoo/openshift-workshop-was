@@ -546,7 +546,7 @@ In this step you deploy the container image you have created to Red Hat OpenShif
 
 1. Navigate through the application web pages as you did in the WebSphere Application Server deployment to verify the application is working on the new runtime.
 
-That's it, you're done! There is no need to perform any clean up steps. The cluster will be removed up by the lab instructors some time after the lab has concluded.
+That's it, you're done! There is no need to perform any clean up steps. The cluster will be deleted by the lab instructors some time after the lab has concluded.
 
 <a name="Summary"></a>
 
