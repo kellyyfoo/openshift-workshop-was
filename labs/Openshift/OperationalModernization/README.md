@@ -23,27 +23,41 @@ While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, 
 
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
 
-This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM Cloud Pak for Applications to RedHat OpenShift.
+This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed to RedHat OpenShift Container Platform (OCP).
 
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
 
 <a name="analysis"></a>
-## Analysis (Background reading only)
+## Analysis (Background reading, optionally hands on)
+> NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
-IBM Cloud Transformation Advisor was used to analyze the Customer Order Service Application running in the WebSphere ND environment. 
-The Transformation Advisor helps you to analyze your on-premises workloads for modernization. 
-It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
-The stesp taken to analyze the existing Customer Order Services application were:
+IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
 
-1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used. 
+The steps needed to analyze the existing Customer Order Services application are:
 
-2. Downloaded and executed the **Data Collector** against the existing WebSphere ND runtime.
+1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. 
 
-3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
+1. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. Name it **OperationalModernization** and click **Next**. Create a new collection to store the data collected from the **Customer Order Services** application and name it **CustomerOrderServices**. Click **Create**. 
+
+1. The **No recommendations available** page is displayed. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollector.zip)
+
+1. Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor. You will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings. Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This will show you an entry for each application for each compatible destination runtime you can migrate it to. 
 
     ![tWAS](extras/images/tWAS-analyze/analysis2.jpg)
 
-4. Analyzed the **Detailed Migration Analysis Report**. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime, and the decision was to proceed with the operational modernization.
+1. Click the **CustomerOrderServicesApp.ear** application with the **WebSphere traditional** migration target to open the **Application details page**. This lab covers operational modernization, so the application will continue to run on WebSphere traditional but will be placed in a container and deployed to OCP.
+
+1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime, so it is a good candidate to proceed with the operational modernization.
+
+1. Click on **View migration plan** in the top right corner of the page. This page will help you assemble an archive containing:
+    - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
+    - any required drivers or libraries (you upload these here or specify Maven coordinates to download them)
+    - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
+    - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
+
+> NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
+
+For a more detailed walkthrough of the Transformation Advisor process, see [this document](extras/WAS-analyze.md). 
 
 
 <a name="build"></a>
@@ -53,11 +67,11 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 
 Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So, let's kick that process off and before explaining what you did. The image should be built by the time you complete this section.
 
-1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a terminal in your lab environment. If you are using a web terminal (you will have set one up in lab setup) for command line interface, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issing `oc login` command from the web terminal.  Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
+1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from your terminal.  Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your web terminal:
+1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
@@ -217,7 +231,7 @@ RUN /work/configure.sh
    - You must `push` the image to propagate the changes to the remote registry.
 
 1. Let's push the image you just built to your OpenShift cluster's built-in image registry. 
-   - First, login to the image registry by running the following command in the web terminal. 
+   - First, login to the image registry by running the following command in the terminal. 
      - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
@@ -459,7 +473,7 @@ Since migrating the database is not the focus of this particular workshop and to
 1. Below is an overview diagram on the deployment you've completed from the above steps: 
    - Note: DB2 in the middle of the diagram is pre-installed through a different project `db` and has been up and running before your hands-on.  Also it will not be impacted when you're removing the deployment in next step.
 
-   ![applicaiton flow with standard deployment](extras/images/app-flowchart_1.jpg)
+   ![application flow with standard deployment](extras/images/app-flowchart_1.jpg)
    
  
 1. Navigate from OpenShift Console to view the resources on the deployment:

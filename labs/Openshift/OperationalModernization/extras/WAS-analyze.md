@@ -30,7 +30,7 @@ You can use IBM Transformation Advisor for these activities:
 The tool also provides suggestions for the right-fit IBM WebSphere Application Server edition and offers advice, practices, and potential solutions to move apps to Liberty or to newer versions of WebSphere Application Server.
 
 ## Install IBM Cloud Transformation Advisor
-IBM Cloud Transformation Advisor is split in to two components (the `analysis engine` and the `data collector`). Access Transformation Advisor from IBM Cloud Pak for Applications. You can also run it locally on a machine with Docker. See [Installing IBM Cloud Transformation Advisor Beta Edition locally](https://www.ibm.com/garage/method/practices/learn/ibm-transformation-advisor).
+IBM Cloud Transformation Advisor is split in to two components (the `analysis engine` and the `data collector`). Access Transformation Advisor from IBM WebSphere Hybrid Edition. You can also run it locally on a machine with Docker. See [Installing IBM Cloud Transformation Advisor locally](https://www.ibm.com/garage/method/practices/learn/ibm-transformation-advisor).
 
 ### Download the Data Collector
 Once IBM Cloud Transformation Advisor is installed, it is necessary to create a new Workspace and Collection and then download the **Data Collector** that will be used to examine the existing environment and applications.
@@ -39,7 +39,7 @@ Once IBM Cloud Transformation Advisor is installed, it is necessary to create a 
 
   ![Home Page](images/tWAS-analyze/workspace1.jpg)
 
-2. Enter a Workspace name such as `CloudPak_for_Applications` and click **Next**
+2. Enter a Workspace name such as `TransformationAdvisorDemo` and click **Next**
 
   ![Workspace](images/tWAS-analyze/workspace2.jpg)
 
@@ -55,18 +55,18 @@ Once IBM Cloud Transformation Advisor is installed, it is necessary to create a 
 
   ![Download](images/tWAS-analyze/download.jpg)
 
-  This results in a file with a name similar to `transformationadvisor-Linux_CloudPak_for_Applications_WAS855_AppSrv01.tgz` being downloaded.
+  This results in a file with a name similar to `transformationadvisor-Linux_TransformationAdvisorDemo_WAS855_AppSrv01.tgz` being downloaded.
 
 ## Run the Data Collector
 Upload the Data Collector zip file that was downloaded from IBM Cloud Transformation Advisor in the previous step to the machine that the WebSphere ND Deployment Manager or the Standalone WebSphere Application Server is installed. The directory used arbitrary.
 
-1. Navigate to the directory you uploaded the `transformationadvisor-Linux_CloudPak_for_Applications_WAS855_AppSrv01.tgz` file to and issue the following commands to extract the Data Collector:
+1. Navigate to the directory you uploaded the `transformationadvisor-Linux_TransformationAdvisorDemo_WAS855_AppSrv01.tgz` file to and issue the following commands to extract the Data Collector:
 
   ```bash
   mkdir datacollector
   cd datacollector
-  mv transformationadvisor-Linux_CloudPak_for_Applications_WAS855_AppSrv01.tgz .
-  tar -zxvf transformationadvisor-Linux_CloudPak_for_Applications_WAS855_AppSrv01.tgz
+  mv transformationadvisor-Linux_TransformationAdvisorDemo_WAS855_AppSrv01.tgz .
+  tar -zxvf transformationadvisor-Linux_TransformationAdvisorDemo_WAS855_AppSrv01.tgz
   cd transformationadvisor-*
   ```
 
@@ -92,7 +92,7 @@ Upload the Data Collector zip file that was downloaded from IBM Cloud Transforma
 4. When the analysis is complete, the Data Collector will attempt to upload the collection results to IBM Cloud Transformation Advisor. If this is successful, you can skip to the **Analyze the Recommendations** section. If not, you will receive an error at the end of Data Collection and will find a file named `AppSrv01.zip` in your current directory as shown below.
 
   ```bash
-  ~/datacollector/transformationadvisor-1.9.6# ls -la *.zip
+  ~/datacollector/transformationadvisor-2.4.2# ls -la *.zip
   -rw-r--r-- 1 root root 625493 Jun 12 12:58 AppSrv01.zip
   ```
 
@@ -114,7 +114,7 @@ In this section the results from the Data Collector will be uploaded to IBM Clou
 ## Analyze the Recommendations
 Once the Data Collector Results have been uploaded to IBM Cloud Transformation Advisor a set of recommendations will be created and shown on the **Recommendations** page. In this section the recommendations will be analyzed and interpreted.
 
-1. The default recommendations are based on a target runtime of **Liberty on Private Cloud**. In this scenario the desired target runtime is **WebSphere Traditional on Private Cloud**. Use the **Preferred migration** drop down to select WebSphere Traditional on Private Cloud as shown below.
+1. The default recommendations are based on a target runtime of **Liberty runtimes**. In this scenario the desired target runtime is **WebSphere Traditional**. Use the **Migration target** drop down to select WebSphere traditional as shown below.
 
   ![Summary](images/tWAS-analyze/analysis1.jpg)
 
@@ -122,7 +122,7 @@ Once the Data Collector Results have been uploaded to IBM Cloud Transformation A
 
   ![tWAS](images/tWAS-analyze/analysis2.jpg)
 
-  In the case of the **CustomerOrderServicesApp.ear** application, IBM Cloud Transformation Advisor has determined that the migration to WebSphere Traditional on Private Cloud is of **Moderate** complexity and that there are four **Severe Issues** that have been detected. Click on the **CustomerOrderServicesApp.ear** application name to see more information.
+  In the case of the **CustomerOrderServicesApp.ear** application, IBM Cloud Transformation Advisor has determined that the migration to WebSphere Traditional is of **Moderate** complexity and that there are four **Severe Issues** that have been detected. Click on the **CustomerOrderServicesApp.ear** application name to see more information.
 
 3. Review the analysis results and scroll down to the **Technology Issues** section. Note that IBM Cloud Transformation Advisor has detected that there are issues with JPA, specifically that the second-level cache and the JPA configuration properties must be migrated and with JAX-RS (missing Apache and Wink packages). These issues are related to a decision that was taken by IBM to allow WebSphere Application Server V9 to run in either JPA 2.0 or JPA 2.1 mode [as described here](https://www.ibm.com/support/knowledgecenter/SSEQTP_9.0.0/com.ibm.websphere.base.doc/ae/cejb_jpa21_behavior.html) and in either JAX-RS 2.0 or JAX-RS 1.1 mode [as described here](https://www.ibm.com/support/knowledgecenter/en/SS7K4U_9.0.0/com.ibm.websphere.zseries.doc/ae/rwbs_jaxrs_coexist.html). In order to run in JPA 2.1 mode and JAX-RS 2.0 mode, the changes highlighted by IBM Cloud Transformation Advisor must be made to the application. **However, this application can run in JPA 2.0 mode and JAX-RS 1.1 mode with no changes**.
 
@@ -141,10 +141,10 @@ Once the Data Collector Results have been uploaded to IBM Cloud Transformation A
   ![JPA](images/tWAS-analyze/jpa.jpg)
 
 ### Final Analysis
-The intention of this traditional WebSphere V855 --> traditional WebSphere V9 (Private Cloud) scenario is to migrate the Customer Order Services application to the new runtime without code changes.
+The intention of this traditional WebSphere V855 --> traditional WebSphere V9 scenario is to migrate the Customer Order Services application to the new runtime without code changes.
 
-IBM Cloud Transformation Advisor was used to analyze the application for compatibility with traditional WebSphere V9 (Private Cloud) and determined that code changes would be required.
+IBM Cloud Transformation Advisor was used to analyze the application for compatibility with traditional WebSphere V9 and determined that code changes would be required.
 
 IBM Cloud Transformation Advisor took the approach that the application should be modified to run with the JPA 2.1 runtime and the JAX-RS 2.0 runtime instead of giving the option to use the JPA 2.0 runtime and the JAX-RS 1.1 runtime which would have resulted in not requiring any code changes to the application.
 
-The remainder of this scenario is based on the decision to use the JPA 2.0 runtime option and the JAX-RS 1.1 runtime option in traditional WebSphere V9 (Private Cloud) and as such no code changes will be required to this application.
+The remainder of this scenario is based on the decision to use the JPA 2.0 runtime option and the JAX-RS 1.1 runtime option in traditional WebSphere V9 and as such no code changes will be required to this application.
