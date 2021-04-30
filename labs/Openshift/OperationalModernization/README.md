@@ -53,7 +53,7 @@ The steps needed to analyze the existing Customer Order Services application are
     
     Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor.
     
-    ![TA upload collection screen](extras/images/ta-upload-datacollection.png)
+    ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
 
 1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
 
