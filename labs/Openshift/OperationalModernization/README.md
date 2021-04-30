@@ -35,25 +35,53 @@ IBM Cloud Transformation Advisor can be used to analyze the Customer Order Servi
 
 The steps needed to analyze the existing Customer Order Services application are:
 
-1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. 
+1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
 
-1. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. Name it **OperationalModernization** and click **Next**. Create a new collection to store the data collected from the **Customer Order Services** application and name it **CustomerOrderServices**. Click **Create**. 
+    ![TA starting page](extras/images/ta-create-collection.png)
 
-1. The **No recommendations available** page is displayed. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollector.zip)
+1. Name it **OperationalModernization** and click **Next**. 
 
-1. Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor. You will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings. Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This will show you an entry for each application for each compatible destination runtime you can migrate it to. 
+    ![Choose workspace name](extras/images/ta-name-workspace.png)
+    
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application; name it **CustomerOrderServices**. Click **Create**. 
+    
+    ![Choose collection name](extras/images/ta-name-collection.png)
 
-    ![tWAS](extras/images/tWAS-analyze/analysis2.jpg)
+1. The **No recommendations available** page is displayed. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
+
+    ![TA no recommendations available screen](extras/images/ta-upload.png)
+    
+    Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor.
+    
+    ![TA upload collection screen](extras/images/ta-upload-datacollection.png)
+
+1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
+
+    ![TA recommendations screen for the data collection](extras/images/ta-migration-target.png)
+    
+    Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This will show you an entry for each application for each compatible destination runtime you can migrate it to.
+    
+    ![TA choosing compatible runtimes](extras/images/ta-compatible-runtimes.png)
 
 1. Click the **CustomerOrderServicesApp.ear** application with the **WebSphere traditional** migration target to open the **Application details page**. This lab covers operational modernization, so the application will continue to run on WebSphere traditional but will be placed in a container and deployed to OCP.
 
+    ![TA choosing CustomerOrderServices tWAS target](extras/images/ta-cos-twas.png)
+    
 1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime, so it is a good candidate to proceed with the operational modernization.
 
-1. Click on **View migration plan** in the top right corner of the page. This page will help you assemble an archive containing:
+    ![TA detailed analysis for CustomerOrderServices](extras/images/ta-detailed-analysis.png)
+
+1. Click on **View migration plan** in the top right corner of the page. 
+    
+    ![TA migration plan button](extras/images/ta-migration-bundle-button.png)
+    
+    This page will help you assemble an archive containing:
     - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
     - any required drivers or libraries (you upload these here or specify Maven coordinates to download them)
     - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
     - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
+
+    ![TA migration plan page](extras/images/ta-migration-bundle.png)
 
 > NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
 
