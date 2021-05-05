@@ -18,7 +18,7 @@ In this lab, you'll learn about managing your running applications efficiently u
 
 1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
 
-1. If you have not log in to OpenShift CLI or if your previous `oc login` session is no longer available (due to OpenShift CLI login token expired, or web termainl session is reopened), then follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issing `oc login` command from the web terminal.
+1. If you have not log in to OpenShift CLI or if your previous `oc login` session is no longer available (due to OpenShift CLI login token expired, or web terminal session is reopened), then follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from the web terminal.
 
 1. If you have not yet cloned the GitHub repo with the lab artifacts (which is the same as used in the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization)), then run the following command on your web terminal:
     ```
@@ -30,7 +30,7 @@ In this lab, you'll learn about managing your running applications efficiently u
 
 1. Change to the lab's directory:
    ```
-   If you're at the prevoius location openshift-workshop-was/labs/Openshift/RuntimeModernization, then
+   If you're at the previous location openshift-workshop-was/labs/Openshift/RuntimeModernization, then
    cd ../OperationalModernization
    
    otherwise, using the full path to OperationalModernization folder:

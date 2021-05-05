@@ -18,7 +18,7 @@
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast start-up times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
-Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes maybe required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
+Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes may be required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
 
 **This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
 
@@ -27,36 +27,70 @@ It uses the **Customer Order Services** application, which originates from WebSp
 Click [here](extras/application.md) and get to know the application, its architecture and components.
 The application will go through **analysis**, **build** and **deploy** phases. 
 It is modernized to run on the Liberty runtime, and
-deployed via the IBM Cloud Pak for Applications to RedHat OpenShift.
+deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Platform (OCP).
 
 
 <a name="analysis"></a>
-## Analysis (Background reading only)
+## Analysis (Background reading, optionally hands on)
+> NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
-IBM Cloud Transformation Advisor was used to analyze the existing Customer Order Services application and the WebSphere ND runtime. The steps taken were:
+IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
 
-1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used.
+The steps needed to analyze the existing Customer Order Services application are:
 
-2. Downloaded and executed the **Data Collector** against the existing WebSphere ND runtime.
+1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
 
-3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
+    ![TA starting page](extras/images/ta-create-collection.png)
 
-    ![Liberty analysis](extras/images/liberty-analyze/analysis1a.jpg)
+1. Name it **RuntimeModernization** and click **Next**. 
 
-- In the case of the **CustomerOrderServicesApp.ear** application, IBM Cloud Transformation Advisor has determined that the migration to Liberty on Private Cloud is of **Moderate** complexity and that there are two **Severe Issues** that have been detected.
+    <!-- ![Choose workspace name](extras/images/ta-name-workspace.png) -->
+    
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application; name it **CustomerOrderServices**. Click **Create**. 
+    
+    ![Choose collection name](extras/images/ta-name-collection.png)
 
-- Drilling down in to **Detailed Migration Analysis Report** that is part of the application analysis, it is apparent that IBM Cloud Transformation Advisor has detected that there are issues with lookups for Enterprise JavaBeans and with accessing the Apache Wink APIs.
+1. The **No recommendations available** page is displayed. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
 
-  ![JPA](extras/images/liberty-analyze/severe.jpg)
+    ![TA no recommendations available screen](extras/images/ta-upload.png)
+    
+    Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor.
+    
+    ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
 
-- **Behaviour change on lookups for Enterprise JavaBeans**: In Liberty, EJB components are not bound to a server root Java Naming and Directory Interface (JNDI) namespace as they are in WebSphere Application Server traditional. The fix for this is to change the three classes that use `ejblocal` to use the correct URL for Liberty
+1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
 
-- **The user of system provided Apache Wink APIs requires configuration**: To use system-provided third-party APIs in Liberty applications, you must configure the applications to include the APIs. In WebSphere Application Server traditional, these APIs are available without configuration. This is a configuration only change and can be achieved by using a `classloader` definition in the Liberty server.xml file.
+    ![TA recommendations screen for the data collection](extras/images/ta-migration-target.png)
+    
+    Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This shows an entry for each application for each compatible destination runtime you can migrate it to.
+    
+    ![TA choosing compatible runtimes](extras/images/ta-compatible-runtimes.png)
 
-- In summary, some minimal code changes were required to move this application to the Liberty runtime and the decision was taken to proceed with these code changes.
+1. Click the **CustomerOrderServicesApp.ear** application with the **Open Liberty** migration target to open the **Application details page**. This lab covers runtime modernization, so the application will be re-platformed to run on Open Liberty, and will be placed in a container and deployed to OCP.
 
-**Homework**: After you complete this workshop, review the step-by-step instructions on how to replicate these steps from the resources included in _Next Steps_ section. Then try Transformation Advisor with one of your applications to migrate it to Liberty.
+    ![TA choosing CustomerOrderServices Open Liberty target](extras/images/ta-cos-ol.png)
+    
+1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to Open Liberty, so it is a good candidate to proceed with the operational modernization. 
 
+    ![TA detailed analysis for CustomerOrderServices](extras/images/ta-detailed-analysis.png)
+
+1. Notice that one of the issues at the **Suggested** severity is **Behavior change on lookups for Enterprise JavaBeans in previous versions of Liberty**. This issue used to be **Severe** and caused **CustomerOrderServicesApp.ear** to require code changes in order to run on Open Liberty. However, support for the form of lookups used in WebSphere traditional was added in Open Liberty version 20.0.0.12, so these code changes are no longer mandatory. 
+
+    The **CustomerOrderServicesApp.ear** application included in the lab files includes this code change. This is to conform to the newer way of looking up beans, ensuring the app will be able to run even on prior versions of Open Liberty.
+
+1. Click on **View migration plan** in the top right corner of the page. 
+    
+    ![TA migration plan button](extras/images/ta-migration-bundle-button.png)
+    
+    This page will help you assemble an archive containing:
+    - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
+    - any required drivers or libraries (you upload these here or specify Maven coordinates to download them)
+    - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
+    - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
+
+    ![TA migration plan page](extras/images/ta-migration-bundle.png)
+
+> NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
 
 <a name="build"></a>
 ## Build (Hands-on)
@@ -66,11 +100,11 @@ In this section, you'll learn how to build a Docker image for Customer Order Ser
 Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). 
 Let's kick that process off and then come back to learn what you did.
 
-1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a terminal in your lab environment. If you are using a web terminal (you will have set one up in lab setup) for command line interface, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issing `oc login --token= ... --server= ...` command from the web terminal. Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
+1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login --token= ... --server= ...` command from your terminal. Without a successful `oc login`, attempting to run the follow-on `oc` commands (e.g., `oc new-project ...`),  you will get a permission error.
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your web terminal:
+1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
@@ -89,7 +123,7 @@ Let's kick that process off and then come back to learn what you did.
 
 ### Library changes (for reading only)
 
-- Made the simple code changes required for the EJB lookups which were recommended by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of IBM Cloud Transformation Advisor:
+- Simple code changes for the EJB lookups which were suggested by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of Transformation Advisor:
 
   ![Analysis](extras/images/analysis.jpg)
 

@@ -23,7 +23,7 @@ While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, 
 
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
 
-This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed to RedHat OpenShift Container Platform (OCP).
+This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v9.0.5 to the traditional WebSphere Base v9 container and is deployed to RedHat OpenShift Container Platform (OCP).
 
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
 
