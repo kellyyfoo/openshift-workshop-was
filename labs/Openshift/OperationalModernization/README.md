@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading)
+- [Analysis](#analysis) (Reading, or hands-on if available)
 - [Build](#build) (Hands-on)
 - [Deploy without operator](#deploy) (Hands-on)
 - [Access the Application without operator](#access-the-application) (Hands-on)

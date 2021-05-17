@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading only)
+- [Analysis](#analysis) (Reading only, or hands on if available)
 - [Build](#build) (Hands-on)
 - [Deploy](#deploy) (Hands-on)
 - [Access the Application](#access-the-application-hands-on) (Hands-on)
@@ -123,9 +123,9 @@ Let's kick that process off and then come back to learn what you did.
 
 ### Library changes (for reading only)
 
-- Simple code changes for the EJB lookups which were suggested by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of Transformation Advisor:
+- Simple code changes for the EJB lookups were suggested by IBM Cloud Transformation Advisor. While the severity of these occurrences is minor on the latest version of Open Liberty, the decision was made to make the changes due to the requirement to make them if running on an older version of Open Liberty. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of Transformation Advisor:
 
-  ![Analysis](extras/images/analysis.jpg)
+  ![Analysis](extras/images/analysis.png)
 
 - Below is an example of the code changes required for one of the three Java classes. The `org.pwte.example.resources.CategoryResource.java` is changed from using `ejblocal` as shown below:
 
@@ -150,12 +150,12 @@ Let's kick that process off and then come back to learn what you did.
 
 ### Modernize with MicroProfile (for reading only)
 
-We used the opportunity to make code changes to modernize some aspects of the application as well. Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. Even though our application is a monolith, we can still take advantage of some of the technologies from MicroProfile.
+We used the opportunity to make code changes to modernize some aspects of the application as well. Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. However, even though our application has not been refactored into microservices, we can still take advantage of some of the technologies from MicroProfile.
 
 
 #### Secure application (for reading only)
 
-We updated the application to use a token-based authentication mechanism to authenticate, authorize, and verify user identities. Added MicroProfile JWT to validate security tokens. The application was updated to use Keycloak, which runs on the cluster and will handle authenticating users. It'll also handle registering & storing user account information.
+On WebSphere traditional, the application used the built-in file-based user registry for managing application users. While Open Liberty provides similar functionality, it is a better practice to use an external service for user security. We updated the application to use a token-based authentication mechanism to authenticate, authorize, and verify user identities, adding MicroProfile JWT to validate security tokens. The application was updated to use Keycloak, which runs on the cluster and will handle authenticating users. It'll also handle registering & storing user account information.
 
 #### Externalize configuration (for reading only)
 
@@ -281,7 +281,7 @@ Here is the final version of the file:
 
   - This is a multi-stage Dockerfile, as indicated by the 2 instructions with `FROM`. The first stage builds the application using Maven. It uses the base image from Maven, copies the application source and then builds using Maven commands. The second stage is the actual application image, which uses the _ear_ file produced by the first stage. 
 
-  - The base image for this application image is `openliberty/open-liberty`, which is the official image for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `20.0.0.3-full-java8-openj9-ubi`).
+  - The base image for this application image is `openliberty/open-liberty`, which is the official image for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel-slim`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `21.0.0.3-full-java8-openj9-ubi`).
 
   - Copy everything that the application needs into the container including the necessary db2 drivers.
   
@@ -300,7 +300,7 @@ Here is the final version of the file:
 
 ### Build image (Hands-on)
 
-1. Go back to the web terminal to check the build you started earlier.
+1. Go back to your terminal to check the build you started earlier.
    You should see the following message if image was built successfully. Please wait if it's still building:
 
    ```
@@ -344,7 +344,7 @@ Here is the final version of the file:
      - Click on **Home** > **Projects**. 
      - Click on `Create Project` button.
      - Enter `apps` for the _Name_ field and click on `Create`.
-     - Go back to web terminal. 
+     - Go back to your terminal. 
      - Switch the current project in the command line to `apps` 
        ```
        oc project apps
