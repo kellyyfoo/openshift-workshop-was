@@ -4,7 +4,6 @@
 
 - [Introduction](#introduction)
 - [Prerequisites](#prerequisites)
-- [IBM Application Navigator](#ibm-application-navigator-hands-on) (Hands-on)
 - [Application Logging](#application-logging-hands-on) (Hands-on)
 - [Application Monitoring](#application-monitoring-hands-on) (Hands-on)
 - [Day-2 Operations](#day-2-operations-hands-on) (Hands-on)
@@ -12,15 +11,15 @@
 
 ## Introduction
 
-In this lab, you'll learn about managing your running applications efficiently using various tools available to you as part of IBM Cloud Pak for Applications.
+In this lab, you'll learn about managing your running applications efficiently using various tools available to you as part of OpenShift and OperatorHub, including the Open Liberty Operator.
 
 ## Prerequisites
 
-1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a terminal to access the command line interface. If you were using the web terminal and it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal. Otherwise, start the terminal available in your environment.
 
-1. If you have not log in to OpenShift CLI or if your previous `oc login` session is no longer available (due to OpenShift CLI login token expired, or web terminal session is reopened), then follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from the web terminal.
+1. If you have not logged in to OpenShift CLI or if your previous `oc login` session is no longer available (due to OpenShift CLI login token expired, or terminal session is reopened), then follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from the terminal.
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts (which is the same as used in the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization)), then run the following command on your web terminal:
+1. If you have not yet cloned the GitHub repo with the lab artifacts (which is the same as used in the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization)), then run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
@@ -43,7 +42,7 @@ In this lab, you'll learn about managing your running applications efficiently u
    oc project apps-was
    ```
 
- 1. Build and deploy the application by running the commands in the followin sequence. Reminder: the `.` at the end of the first command.
+ 1. Build and deploy the application by running the commands in the following sequence. Reminder: the `.` at the end of the first command.
     ```
     docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
     docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
@@ -51,7 +50,7 @@ In this lab, you'll learn about managing your running applications efficiently u
     oc apply -f deploy
     ```
 
-1. Wait for the pod to be available via `oc get pod`
+1. Wait for the pod to be available, check status via `oc get pod`
 
 1. Get the URL to the application:
    ```
@@ -87,7 +86,7 @@ In this lab, you'll learn about managing your running applications efficiently u
    oc label namespace apps app-monitoring=true
    ```
 
-1. Build and deploy the application by running the commands in the followin sequence. Reminder: the `.` at the end of the first command:
+1. Build and deploy the application by running the commands in the following sequence. Reminder: the `.` at the end of the first command:
    ```
    docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
    docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
@@ -129,32 +128,6 @@ In this lab, you'll learn about managing your running applications efficiently u
    - **Add multiple items to the shopping cart to trigger more logging.**
    - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
   
-
-## IBM Application Navigator (Hands-on)
-
-IBM Application Navigator provides a single dashboard to manage your applications running on cloud as well as on-prem, so you don't leave legacy applications behind. 
-It gives you an aplication centric view your environment.
-Starting with applications, you can drill down to view their dependent resources, such as Deployment, Service, Route, and their state. 
-When configured, it also allows you to view your legacy traditional WebSphere ND cells in the same console.
-
-1. In OpenShift console, from the left-panel, select **Networking** > **Routes**.
-
-1. From the _Project_ drop-down list, select `kappnav`. 
-
-1. Click on the route URL (listed under the _Location_ column).
-
-1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
-
-1. Notice the list of application(s) you deployed. Click on them to see the resources that are part of the applications.
-
-As you modernize your applications, some workload would still be running on traditional environments. 
-IBM Application Navigator, included as part of IBM Cloud Pak for Applications, supports adding WebSphere Network Deployment (ND) environments, so they can be managed from the same dashboard. 
-Though out of the scope for this lab, you may import an existing WebSphere Application Server ND cell as a custom resource. 
-Application Navigator automatically discovers enterprise applications that are deployed on the cell and creates custom resources to represent those WebSphere ND applications. 
-Application Navigator periodically polls the cell to keep the state of the resources synchronized with the cell. 
-
-Application Navigator also provides links to other dashboards that you already use and are familiar with. You can also define your own custom resources using the extension mechanism provided by Application Navigator.
-
 ## Application Logging (Hands-on)
 
 Pod processes running in OpenShift frequently produce logs. To effectively manage this log data and ensure no loss of log data occurs when a pod terminates, a log aggregation tool should be deployed on the cluster. Log aggregation tools help users persist, search, and visualize the log data that is gathered from the pods across the cluster. Let's look at application logging with log aggregation using EFK (Elasticsearch, Fluentd, and Kibana). Elasticsearch is a search and analytics engine. Fluentd receives, cleans and parses the log data. Kibana lets users visualize data with charts and graphs in Elasticsearch.
@@ -247,7 +220,7 @@ Building observability into applications externalizes the internal status of a s
 
 ### Grafana dashboard (Hands-on)
 
-1. Custom resource [GrafanaDashboard](dashboards/grafana/grafana-dashboard-cos.yaml) defines a set of dashboards for monitoring Customer Order Services application and Open Liberty. In web terminal, run the following command to create the dashboard resource:
+1. Custom resource [GrafanaDashboard](dashboards/grafana/grafana-dashboard-cos.yaml) defines a set of dashboards for monitoring Customer Order Services application and Open Liberty. In your terminal, run the following command to create the dashboard resource:
 
    - Before running the command, change directory to /openshift-workshop-was/labs/Openshift/ApplicationManagement if it's not already done.
 
@@ -314,7 +287,7 @@ A storage must be configured so the generated artifacts can persist, even after 
 
 Enable serviceability option for the Customer Order Services application. In productions systems, it's recommended that you do this step with the initial deployment of the application - not when you encounter an issue and need to gather server traces or dumps. OpenShift cannot attach volumes to running Pods so it'll have to create a new Pod, attach the volume and then take down the old Pod. If the problem is intermittent or hard to reproduce, you may not be able to reproduce it on the new instance of server running in the new Pod. The volume can be shared by all Liberty applications that are in the same namespace and the volumes wouldn't be used unless you perform day-2 operation on a particular application - so that should make it easy to enable serviceability with initial deployment.
 
-1. Specify the name of the storage request (Persistent Volume Claim) you made earlier to `spec.serviceability.volumeClaimName` parameter provided by `OpenLibertyApplication` custom resource. Open Liberty Operator will attach the volume bound to the claim to each instance of the server. In web terminal, run the following command:
+1. Specify the name of the storage request (Persistent Volume Claim) you made earlier to `spec.serviceability.volumeClaimName` parameter provided by `OpenLibertyApplication` custom resource. Open Liberty Operator will attach the volume bound to the claim to each instance of the server. In your terminal, run the following command:
 
     ```
     oc patch olapp cos -n apps --patch '{"spec":{"serviceability":{"volumeClaimName":"liberty"}}}' --type=merge
@@ -394,7 +367,7 @@ The generated trace and dump files should now be in the persistent volume. You u
 The following steps to access the files are illustrated in the screen recording below:
 
 1. Remote shell to your pod via one of two ways:
-  - From web terminal:
+  - From your terminal:
     ```
     oc rsh <pod-name>
     ```
