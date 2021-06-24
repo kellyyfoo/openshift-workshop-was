@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import org.eclipse.microprofile.jwt.JsonWebToken;
+
 import javax.annotation.Resource;
 import javax.annotation.security.RolesAllowed;
 import javax.ejb.SessionContext;
@@ -211,15 +211,7 @@ public class CustomerOrderServicesImpl implements CustomerOrderServices {
 			ResidentialCustomer newCustomer = new ResidentialCustomer();
 			newCustomer.setUser(user);
 			newCustomer.setName(user);
-			if (p instanceof JsonWebToken) {
-				JsonWebToken t = (JsonWebToken)p;
-				String firstName = t.getClaim("given_name");
-				String lastName = t.getClaim("family_name");
-				if (firstName != null && lastName !=null) {
-					newCustomer.setName(firstName + " " + lastName);
-				}
-
-			}
+			
 			em.persist(newCustomer);
 			customer = newCustomer;
 		}
