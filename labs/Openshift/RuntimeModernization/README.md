@@ -8,7 +8,6 @@
 - [Deploy](#deploy) (Hands-on)
 - [Access the Application](#access-the-application-hands-on) (Hands-on)
 - [Review Deployment](#review-deployment)
-- [Review Keycloak setup](#review-keycloak-setup-optional) (Optional)
 - [Cleanup](#cleanup-hands-on) (can be skipped if the next lab Application Management is included in the same session)
 - [Extra Credit](#extra-credit)
 - [Summary](#summary)
@@ -152,25 +151,6 @@ Let's kick that process off and then come back to learn what you did.
 
 We used the opportunity to make code changes to modernize some aspects of the application as well. Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. However, even though our application has not been refactored into microservices, we can still take advantage of some of the technologies from MicroProfile.
 
-
-#### Secure application (for reading only)
-
-On WebSphere traditional, the application used the built-in file-based user registry for managing application users. While Open Liberty provides similar functionality, it is a better practice to use an external service for user security. We updated the application to use a token-based authentication mechanism to authenticate, authorize, and verify user identities, adding MicroProfile JWT to validate security tokens. The application was updated to use Keycloak, which runs on the cluster and will handle authenticating users. It'll also handle registering & storing user account information.
-
-#### Externalize configuration (for reading only)
-
-The application will have to run on many different environments. So it's important to avoid hardcoding environment specific values in your code. Otherwise, you'll have to update code, recompile and containerize it frequently. 
-
-MicroProfile Config separates the configuration from code. You can inject the external configuration into services in the containers without repackaging them. Applications can use MicroProfile Config as a single API to retrieve configuration information from different sources such as system properties, system environment variables, properties files, XML files, or data sources. Of course, you can do all this by yourself, but it'll be a lot of work and code. Add few MicroProfile Config annotations and you'll make your life easier and code a lot cleaner.
-
-We used MicroProfile Config to [inject information](app/CustomerOrderServicesWeb/src/org/pwte/example/resources/JWTConfigResource.java#L21) about the application's authenticator (Keycloak in this case). For example, added these 3 lines and at runtime the variable will automatically get the value injected by MicroProfile Config:
-
-  ```java
-  @Inject
-  @ConfigProperty(name = "SSO_URI")
-  private String keycloakURI;
-  ```
-
 #### Determine application's availability (for reading only)
 
 In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
@@ -178,16 +158,9 @@ In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness an
 MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
 
 We implemented the following health checks:
-- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): Keycloak is required to authenticate users. Application should only accept traffic if Keycloak client is up and running.
+- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): The application reports it is ready as long as the readiness check endpoint can be reached. If connections to other services, or any other condition were required to be met before the application was considered ready, they could be checked for here.
 
   ```java
-  URL url = new URL(keycloakURI);
-  con = (HttpURLConnection) url.openConnection();
-  con.setRequestMethod("GET");
-  int status = con.getResponseCode();
-  if (status != 200) {
-    return HealthCheckResponse.named("Readiness").down().build();
-  }
   return HealthCheckResponse.named("Readiness").up().build();
   ```
 
@@ -249,9 +222,7 @@ Have a look at the configuration files and note:
   This allows the same image to be instainated in different environments (e.g. production vs testing). Specifically for this lab, the values of `DB_USER` and `DB_PASSWORD` are configured via Kuberntes secrets. 
   When the container starts, thery are injected into the container as environment variables for the Liberty runtime to pick up. How this works is explained later.
 
-  - The configuration to process the MicroProfile JWT token is defined using `mpJWT` element.
-
-  - `quickStartSecurity` provides an easy way to define an internal user registry with just one user. It is used to secure endpoints such as _/metrics_.
+  - `basicRegistry` provides an easy way to define an internal user registry. It is used to secure the CustomerOrderServices applicatin, as well as endpoints such as _/metrics_. The `admin` user is granted the `administrator` role.
 
 
 ### Build instructions (for reading only)
@@ -462,54 +433,6 @@ Here is the final version of the file:
 
 Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already pre-configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_ and the application references database using the address of the _Service_.
 
-The OpenID Connector Provider Keycloak has already been pre-deployed in the cluster, and a realm named `Galaxy` is created. This is the security realm to be used for our application.  
-
-1. Configure the application by substiting the keycloak URL to the relevant configuration file.
-   - First, take a look at the contents of `deploy/overlay-apps/configmap.yaml` (at the current directory of `/openshift-workshop-was/labs/Openshift/RuntimeModernization`), and note the occurrences of `ENTER_YOUR_ROUTER_HOSTNAME_HERE`: 
-
-     ```
-     cat deploy/overlay-apps/configmap.yaml
-     ```
-
-     Output of yaml:
-     ```yaml
-     apiVersion: v1
-     kind: ConfigMap
-     metadata:
-       name: cos-config
-     data:
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_REALM : "Galaxy"
-       SSO_CLIENT_ID : "cos_app"
-       SSO_URI : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/"
-       JWT_ISSUER : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy"
-       JWT_JWKS_URI : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy/protocol/openid-connect/certs"
-       DB_HOST : "cos-db-liberty.db.svc"
-     ```
-     
-   - Run the following comment `sed` to substitute `ENTER_YOUR_ROUTER_HOSTNAME_HERE` with the actual hostname of your keycloak instance and then the command `cat` to display the yaml:
-   
-     ```
-     sed -i "s/ENTER_YOUR_ROUTER_HOSTNAME_HERE/$(oc get route keycloak -n keycloak  --template='{{ .spec.host }}')/" deploy/overlay-apps/configmap.yaml
-     cat deploy/overlay-apps/configmap.yaml
-     ```
-     
-     Example output of updated yaml:
-     ```yaml
-     apiVersion: v1
-     kind: ConfigMap
-     metadata:
-       name: cos-config
-     data:
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_REALM : "Galaxy"
-       SSO_CLIENT_ID : "cos_app"
-       SSO_URI : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/"
-       JWT_ISSUER : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy"
-       JWT_JWKS_URI : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy/protocol/openid-connect/certs"
-       DB_HOST : "cos-db-liberty.db.svc"
-     ```
-
 1. Deploy the application using the `-k`, or `kustomize` option of Openshift CLI now and we will explain how the deployment works in a later section. 
    - Preview what will be deployed:
 
@@ -522,12 +445,6 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
      apiVersion: v1
      data:
        DB_HOST: cos-db-liberty.db.svc
-       JWT_ISSUER: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy
-       JWT_JWKS_URI: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy/protocol/openid-connect/certs
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_CLIENT_ID: cos_app
-       SSO_REALM: Galaxy
-       SSO_URI: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/
      kind: ConfigMap
      metadata:
        name: cos-config
@@ -627,89 +544,6 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
     cos    cos-apps.mchengupdate2-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud          cos        9443-tcp   reencrypt/Redirect   None
     ```
 
-1. Create keycloak client configuration with the route for this application. 
-   - First, view the exsiting configuration, and note the occurrence of `ENTER_YOUR_APPLICATION_HOST_NAME_HERE`:
-
-     ```
-     cat keycloak/client.yaml
-     ```
- 
-     Output of yaml:
-     ```yaml
-     apiVersion: keycloak.org/v1alpha1
-     kind: KeycloakClient
-     metadata:
-       name: cos-app
-       namespace: keycloak
-       labels:
-         app: sso
-     spec:
-       realmSelector:
-         matchLabels:
-           app: sso
-       client:
-         clientId: cos_app
-         # clientAuthenticatorType: client-secret
-         enabled: true
-         consentRequired: false
-         publicClient: true
-         standardFlowEnabled: true
-         implicitFlowEnabled: false
-         directAccessGrantsEnabled: true
-         redirectUris:
-           - https://ENTER_YOUR_APPLICATION_HOSTNAME_HERE/*
-         webOrigins:
-           - "+"
-         protocol: openid-connect
-     ```
-     
-   - Run the following command `sed` to update `keycloak/client.yaml` to substitute `ENTER_YOUR_APPLICATION_HOSTNAME_HERE` with the actual hostname of application route URL and then the command `cat` to display the yaml:
-
-     ```
-     sed -i "s/ENTER_YOUR_APPLICATION_HOSTNAME_HERE/$(oc get route cos -n apps --template='{{ .spec.host }}')/" keycloak/client.yaml
-     cat keycloak/client.yaml
-     ```
-
-     Example of updated yaml:
-     ```yaml
-     apiVersion: keycloak.org/v1alpha1
-     kind: KeycloakClient
-     metadata:
-       name: cos-app
-       namespace: keycloak
-       labels:
-         app: sso
-     spec:
-       realmSelector:
-         matchLabels:
-           app: sso
-       client:
-         clientId: cos_app
-         # clientAuthenticatorType: client-secret
-         enabled: true
-         consentRequired: false
-         publicClient: true
-         standardFlowEnabled: true
-         implicitFlowEnabled: false
-         directAccessGrantsEnabled: true
-         redirectUris:
-           - https://cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/*
-         webOrigins:
-           - "+"
-         protocol: openid-connect
-     ```
-     
-   - After verifying the correct substitution, run the following command to apply the changes: 
-
-     ```
-     oc apply -f keycloak/client.yaml
-     ```
-     
-     Output of apply command:
-     ```
-     keycloakclient.keycloak.org/cos-app created
-     ```
-
 1. Verify your pod from the project `apps` is ready:
    - First confirm you're at the current project `apps`:
      ```
@@ -749,12 +583,8 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
    ```
    
 1. Point a browser to your URL (returned from the above command). 
-   - You'll be taken to the login form. 
-
-     ![Galaxy Login](extras/images/galaxy-login.jpg)
-
-
-   - Login with user `skywalker` and password `force`. (The user is pre-created/registered in OpenID Connector Provider Keycloak.)
+   - You'll be shown a login dialog.
+   - Login with user `skywalker` and password `force`. (The user is pre-created/registered in the `basicRegistry` configured in Liberty.)
    - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
    - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
    - Add few items to the cart. 
@@ -763,13 +593,6 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
 
 
 ### Review the application workload flow with Open Liberty Operator (Hands-on)
-
-1. Below is an overview diagram on the deployment you've completed from the above steps: 
-   - Note: DB2 and Keycloak in the middle of the diagram are pre-installed through the respective projects `db` and `keycloak`, and have been up and running before your hands-on.  
-
-   ![applicaiton flow with open liberty operator](extras/images/app-flowchart_openlibertyoperator.jpg)
-   
-   
 1. Navigate from OpenShift Console to view the resources on the deployment:
    - Resources in the project `openshift-operators`:
    
@@ -899,115 +722,6 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
           ![ol-db service1](extras/images/oldb_service_1.jpg)
 
           ![ol-db service2](extras/images/oldb_service_2.jpg)
-
-
-    - Resources in the project `keycloak`:
-     
-      - Keycloak Operator `deployment` details:   
-        - select `keycloak-operator`
-       
-          ![keycloak operator4](extras/images/keycloak_op4.jpg)
-          
-        - select `YAML` tab to view the content of yaml
-        
-          ![keycloak operator5](extras/images/keycloak_op5.jpg)
-          
-       - Keycloak Operator's pod details:
-         - select `keycloak-operator-`
-         
-           ![keycloak operator6](extras/images/keycloak_op6.jpg)
-           
-         - select `Logs` to view the keycloak-operator container log  
-         
-           ![keycloak operator7](extras/images/keycloak_op7.jpg)
-       
-        - Keycloak Operator's all instances details:
-          - select `Keycloak Operator`
-          
-            ![keycloak operator1](extras/images/keycloak_op1.jpg)
-
-          - select the respective tabs: `Keycloak`, `KeycloakRealm`, `KeycloakClient` to view the respective instance details, where
-            - `Keycloak` instance deploys the primary keycloak software component including database postgresql to store persistent data
-            - `KeycloakReam` instance contains the security realm management and credential data
-            - `KeycloakClient` instance contains the redirect URI information
-       
-            ![keycloak operator2](extras/images/keycloak_op2.jpg)
-        
-            ![keycloak instance](extras/images/keycloak_instance.jpg)
-          
-            ![keycloak realm](extras/images/keycloak_realm.jpg)
-          
-            ![keycloak client](extras/images/keycloak_client.jpg)
-          
-          - OR select `All Instances` to view the same insance details
-        
-            ![keycloak operator3](extras/images/keycloak_op3.jpg)
-      
-          - Keycloak application `deployment` details (for dababase postgresql portion):
-            - select `keycloak-postgresql`
-
-              ![keycloak workload deploy1](extras/images/keycloak_wk_deploy1.jpg)
-
-            - select `YAML` tab to view the content of yaml. Note the deployment is created through the controller of Keycloak custom resource.
-
-              ![keycloak workload deploy2](extras/images/keycloak_wk_deploy2.jpg)
-            
-          - Keycloak application `statefulset` details (for keycloak component portion):
-            - Note: 
-              - `StatefulSet` resource is equivalent to a special deployment used to manage stateful applications. 
-              - Each replica of the pod will have its own state and unique network identifier, and will be using its own stable persistent storage volume.
-              - The pod is created with a unique naming convention, for example, `<statefulsetname-0>` as 1st pod, `<statefulesetname-1>` as 2nd pod, etc.  
-              - See `keycloak-0` as an example in below pod details section.
-              - For comparion, the resource of `Deployment` deploys a stateless application and is the easiest and most used resource for deploying an application. If using a PVC (PersistenceVolumeClaim), all replicas will be using the same Volume and none of it will have its own state.
-
-            - select `keycloak`
-            
-              ![keycloak workload deploy3](extras/images/keycloak_wk_deploy3.jpg)
-              
-            - select `YAML` tab to view the content of yaml. Note the statefulset is created through the controller of Keycloak custom resource.
-
-              ![keycloak workload deploy4](extras/images/keycloak_wk_deploy4.jpg)
-             
-          - Keycloak application `pod` details
-            - select `keycloak-postgresql-`
-             
-              ![keycloak workload pod1](extras/images/keycloak_wk_pod1.jpg) 
-              
-            - select `Logs` to view the keycloak-postgresql container log  
-           
-              ![keycloak workload pod2](extras/images/keycloak_wk_pod2.jpg)
-         
-            - select `keycloak-0`
-             
-              ![keycloak workload pod3](extras/images/keycloak_wk_pod3.jpg) 
-              
-            - select `Logs` to view the keycloak-0 container log  
-             
-              ![keycloak workload pod4](extras/images/keycloak_wk_pod4.jpg)  
-              
-          - Keycloak application `service` details   
-            - select `keycloak`
-            
-              ![keycloak network service1](extras/images/keycloak_net_service1.jpg) 
-             
-            - select `YAML` tab to view the content of yaml. Note the service is created through the controller of Keycloak custom resource.
-            
-              ![keycloak network service2](extras/images/keycloak_net_service2.jpg) 
-            
-          - Keycloak application `route` details
-            - Note: The `keycloak` route is used to access the keycloak realm management console with administrator user login.  See the step **Review Keycloak setup (optional)** below for more details. 
-            
-            - select `keycloak`
-            
-              ![keycloak network route1](extras/images/keycloak_net_route1.jpg) 
-             
-            - select `YAML` tab to view the content of yaml. Note the route is created through the controller of Keycloak custom resource.
-            
-              ![keycloak network route2](extras/images/keycloak_net_route2.jpg)   
-              
-              
-              
-              
 
 [comment]: <> (Optional: Delete a pod to see how quickly another one is created and becomes ready - compared to traditional WAS, it's much faster)
 
@@ -1216,47 +930,6 @@ spec:
 
 - Enabled application monitoring so that Prometheus can scrape the information provided by MicroProfile Metric's `/metrics` endpoint in Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
-
-## Review Keycloak setup (optional)
-
-Keycloak is an OpenID Connect provider that runs on your cluster. 
-It handles user registration, and authentication. 
-Keycloak is the upstream project for Red Hat Single Sign-On (RH-SSO), which is supported as part of IBM Cloud Pak for Applications.
-
-Get the keycloak admin user name and password that you'll use to login to the keycloak console:
-```
-echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data.ADMIN_USERNAME}}') | base64 -d )
-echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data.ADMIN_PASSWORD}}') | base64 -d )
-```
-
-1. In OpenShift console, from the left-panel, click on **Networking** > **Routes**. Then select `keycloak` from the _Project_ drop-down list.
-
-   ![Keycloak Route](extras/images/KeyCloakRoute.jpg)
-
-1. Click on the route URL (under the `Location` column) to launch Keycloak.
-
-   ![Keycloak Console](extras/images/KeyCloakConsole.jpg)
-
-1. Click on `Administration Console`. Enter the user name and password you obtained previously.
-
-   ![Keycloak Console Login](extras/images/KeycloakConsoleLogin.jpg)
-
-1. The next page shows that a realm named `Galaxy` is already created for you.
-
-   ![Galaxy Realm](extras/images/GalaxyRealm.jpg)
-
-1. Click on `Users` and `View All Users`, and note that the user `skywalker` is already created for you.
-
-   ![KeyCloakUsers](extras/images/KeyCloakUsers.jpg)
-
-1. Click on `Clients` followed by `cos_app`
-
-   ![KeyCloakClients](extras/images/KeyCloakClients.jpg)
-
-1. The custom resource `keycloak/clients.yaml` is used to create the `cos_app` client. Double check the contents of the file with what's on the page.
-
-   ![KeyCloakClientCosApp](extras/images/KeyCloakClientCosApp.jpg)
-
 ## Cleanup (Hands-on) (Skip this step if you're going to run the next lab ![Application Management](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/ApplicationManagement) on the same assigned cluster)
 
 1. The controller for the Open Liberty Operator creates the necessary Deployment, Service, and Route objects for Customer Order Services application. To list these resources, run the commands:
@@ -1286,7 +959,7 @@ echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data
 
 1. To remove these resources, run the command (Reminder: change directory to `openshift-workshop-was/labs/Openshift/RuntimeModernization` if it's not already at the current path.)
    
-   - Note: The pre-installed resources such as Open Liberty Operator, DB2, Keycloak, are not removed.
+   - Note: The pre-installed resources such as Open Liberty Operator and DB2, are not removed.
    
    ```
    oc delete -k deploy/overlay-apps
