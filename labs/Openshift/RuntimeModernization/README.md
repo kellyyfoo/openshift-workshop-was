@@ -118,7 +118,7 @@ Let's kick that process off and then come back to learn what you did.
 
 1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (indicated as the location of current directory). While the image is building (which takes ~3 minutes), continue with rest of the lab:
    ```
-   docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
+   docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos .
    ```
 
 ### Library changes (for reading only)
@@ -304,7 +304,7 @@ Here is the final version of the file:
    You should see the following message if image was built successfully. Please wait if it's still building:
 
    ```
-   Successfully tagged image-registry.openshift-image-registry.svc:5000/apps/cos:latest
+   Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos:latest
    ```
 
 1. Validate that image is in the repository via the command line:
@@ -318,7 +318,7 @@ Here is the final version of the file:
      Example output:
      ```
      REPOSITORY                                                  TAG                     IMAGE ID            CREATED             SIZE
-     image-registry.openshift-image-registry.svc:5000/apps/cos   latest                  4758119add3f        2 minutes ago       883MB
+     default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos   latest                  4758119add3f        2 minutes ago       883MB
      <none>                                                      <none>                  5bcb83fad548        5 minutes ago       792MB
      openliberty/open-liberty                                    full-java8-openj9-ubi   e6b5411076fe        5 days ago          794MB
      maven                                                       latest                  1337d55397f7        4 weeks ago         631MB
@@ -378,7 +378,7 @@ Here is the final version of the file:
    - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
-     docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
+     docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
      ```
      
      Example output:
@@ -394,12 +394,12 @@ Here is the final version of the file:
 1. Push the image to OpenShift's internal image registry via the command line, which could take up to a minute:
 
    ```
-   docker push image-registry.openshift-image-registry.svc:5000/apps/cos
+   docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
    ```
 
    Example output:
    ```
-   The push refers to repository [image-registry.openshift-image-registry.svc:5000/apps/cos]
+   The push refers to repository [default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos]
    9247390b40be: Pushed 
    9a21ca46f8e3: Pushed 
    b3cee8ba43fe: Pushed 
@@ -433,7 +433,7 @@ Here is the final version of the file:
 
      Example output:
      ```
-     sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   image-registry.openshift-image-registry.svc:5000/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
+     sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
      ```
 
 1. Verify the image stream is created via the command line:
@@ -445,7 +445,7 @@ Here is the final version of the file:
    Example output:
    ```
    NAME   IMAGE REPOSITORY                                            TAGS     UPDATED
-   cos    image-registry.openshift-image-registry.svc:5000/apps/cos   latest   2 minutes ago
+   cos    default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos   latest   2 minutes ago
    ```
 
 1. You may also check the image stream via the console: 
@@ -559,7 +559,7 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
        name: cos
        namespace: apps
      spec:
-       applicationImage: image-registry.openshift-image-registry.svc:5000/apps/cos
+       applicationImage: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
        envFrom:
        - configMapRef:
            name: cos-config
@@ -1158,7 +1158,7 @@ metadata:
   name: cos
   namespace: apps
 spec:
-  applicationImage: 'image-registry.openshift-image-registry.svc:5000/apps/cos'
+  applicationImage: 'default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos'
   pullPolicy: Always
   readinessProbe:
     httpGet:

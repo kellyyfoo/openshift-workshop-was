@@ -4,7 +4,7 @@ metadata:
   name: cos-was-rco
   namespace: apps-was
 spec:
-  applicationImage: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+  applicationImage: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
   service:
     port: 9080
   readinessProbe:

@@ -126,7 +126,7 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
      
 1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building continue with rest of the lab:
     ```
-    docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
+    docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
     ```
 
 ### Managing Build artifacts
@@ -215,12 +215,12 @@ RUN /work/configure.sh
 1. Review the command you ran earlier:
 
    ```
-   docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
+   docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
    ```
 
    - It instructs docker to build the image following the instructions in the Dockerfile in current directory (indicated by the `"."` at the end).
    - A specific name to tag the built image is also specified. 
-   - The value `image-registry.openshift-image-registry.svc:5000` in the tag is the default address of the internal image registry provided by OpenShift. 
+   - The value `default-route-openshift-image-registry.apps.demo.ibmdte.net` in the tag is the default address of the internal image registry provided by OpenShift. 
    - Image registry is a content server that can store and serve container images. 
    - The registry is accessible within the cluster via its exposed `Service`. 
    - The format of a Service address: _name_._namespace_._svc_. 
@@ -232,7 +232,7 @@ RUN /work/configure.sh
 1. You should see the following message if the image was successfully built. Please wait if it's still building.
 
    ```
-   Successfully tagged image-registry.openshift-image-registry.svc:5000/apps-was/cos-was:latest
+   Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was:latest
    ```
 
 1. Validate that image is in the repository by running the command:
@@ -246,7 +246,7 @@ RUN /work/configure.sh
      Example output:
      ```
      REPOSITORY                                                             TAG                 IMAGE ID            CREATED             SIZE
-     image-registry.openshift-image-registry.svc:5000/apps-was/cos-was      latest              9394150a5a15        10 minutes ago      2.05GB
+     default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was      latest              9394150a5a15        10 minutes ago      2.05GB
      ibmcom/websphere-traditional                                           9.0.5.0-ubi         898f9fd79b36        12 minutes ago      1.86GB
      ```
 
@@ -254,7 +254,7 @@ RUN /work/configure.sh
    - The name of the image also contains the host name where the image is hosted. 
    - If there is no host name, the image is hosted on docker hub. For example:
    - The image `ibmcom/websphere-traditional` has no host name. It is hosted on docker hub.
-   - The image we just built, `image-registry.openshift-image-registry.svc:5000/apps-was/cos-was`, has host name `image-registry.openshift-image-registry.svc`. It is to be hosted in the Openshift image registry for your lab cluster.
+   - The image we just built, `default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was`, has host name `image-registry.openshift-image-registry.svc`. It is to be hosted in the Openshift image registry for your lab cluster.
    - If you change an image, or build a new image, the changes are only available locally. 
    - You must `push` the image to propagate the changes to the remote registry.
 
@@ -263,7 +263,7 @@ RUN /work/configure.sh
      - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
-     docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
+     docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
      ```
 
      Example output:
@@ -279,7 +279,7 @@ RUN /work/configure.sh
    - Now, push the image into OpenShift cluster's internal image registry, which will take 1-2 minutes:
 
      ```
-     docker push image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+     docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
      ```
 
 1. Verify that the image is in the image registry. The following command will get the images in the registry. OpenShift stores various images needed for its operations and used by its templates in the registry. Filter through the results to only get the image you pushed. Run the following command:
@@ -292,7 +292,7 @@ RUN /work/configure.sh
      
      Example output:
      ```
-     image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
+     default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
      ```
 
 1. OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one already doesn't exist. Run the following command to see the _ImageStream_ that's created:
@@ -359,7 +359,7 @@ Since migrating the database is not the focus of this particular workshop and to
          spec:
            containers:
            - name: cos-was
-             image: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+             image: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
              ports:
                - containerPort: 9080
              livenessProbe:
@@ -655,7 +655,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
         name: cos-was-rco
         namespace: apps-was
       spec:
-        applicationImage: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+        applicationImage: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
         service:
           port: 9080
         readinessProbe:

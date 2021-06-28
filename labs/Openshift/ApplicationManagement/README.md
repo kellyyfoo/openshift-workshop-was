@@ -44,9 +44,9 @@ In this lab, you'll learn about managing your running applications efficiently u
 
  1. Build and deploy the application by running the commands in the following sequence. Reminder: the `.` at the end of the first command.
     ```
-    docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
-    docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
-    docker push image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+    docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
+    docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
+    docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
     oc apply -f deploy
     ```
 
@@ -88,9 +88,9 @@ In this lab, you'll learn about managing your running applications efficiently u
 
 1. Build and deploy the application by running the commands in the following sequence. Reminder: the `.` at the end of the first command:
    ```
-   docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
-   docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
-   docker push image-registry.openshift-image-registry.svc:5000/apps/cos
+   docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos .
+   docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
+   docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
    sed -i "s/ENTER_YOUR_ROUTER_HOSTNAME_HERE/$(oc get route keycloak -n keycloak  --template='{{ .spec.host }}')/" deploy/overlay-apps/configmap.yaml
    oc apply -k deploy/overlay-apps
    ```
