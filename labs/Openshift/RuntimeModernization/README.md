@@ -69,7 +69,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![TA choosing CustomerOrderServices Open Liberty target](extras/images/ta-cos-ol.png)
     
-1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to Open Liberty, so it is a good candidate to proceed with the operational modernization. 
+1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to Open Liberty, so it is a good candidate to proceed with the operational modernization. (Note: there may be a severe issue related to third-party APIs, but this doesn't apply as they occur in test code.)
 
     ![TA detailed analysis for CustomerOrderServices](extras/images/ta-detailed-analysis.png)
 
