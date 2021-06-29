@@ -28,14 +28,14 @@ This repository holds a solution that is the result of an **operational moderniz
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
 
 <a name="analysis"></a>
-## Analysis (Background reading, optionally hands on)
+## Analysis (hands on)
 > NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
 IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
 
 The steps needed to analyze the existing Customer Order Services application are:
 
-1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
+1. Access the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. To access TA in your lab environment, click **Networking**, then **Routes**. Ensure you are in the **ta** project using the project drop down at the top of the page, and click the link next to **ta-ui-route**. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
 
     ![TA starting page](extras/images/ta-create-collection.png)
 
@@ -51,7 +51,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![TA no recommendations available screen](extras/images/ta-upload.png)
     
-    Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor.
+    Upload the results of the data collection (the [**datacollector.zip**](resources/datacollection.zip) file) to IBM Cloud Transformation Advisor.
     
     ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
 
@@ -179,7 +179,7 @@ serverName=server1
 Let's review the contents of the Dockerfile:
 
 ```dockerfile
-FROM ibmcom/websphere-traditional:9.0.5.0-ubi
+FROM ibmcom/websphere-traditional:latest
 
 COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
 
@@ -194,7 +194,7 @@ COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/C
 RUN /work/configure.sh
 ```
 
-- The base image for our application image is `ibmcom/websphere-traditional`, which is the official image for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
+- The base image for our application image is `ibmcom/websphere-traditional`, which is the official image for traditional WAS Base in container.
 
 - We need to copy everything that the application needs into the container. So, we copy the db2 drivers which are referenced in the wsadmin jython script. 
 
@@ -247,14 +247,14 @@ RUN /work/configure.sh
      ```
      REPOSITORY                                                             TAG                 IMAGE ID            CREATED             SIZE
      default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was      latest              9394150a5a15        10 minutes ago      2.05GB
-     ibmcom/websphere-traditional                                           9.0.5.0-ubi         898f9fd79b36        12 minutes ago      1.86GB
+     ibmcom/websphere-traditional                                           latest              898f9fd79b36        12 minutes ago      1.86GB
      ```
 
    - Note that `docker images` only lists those images that are cached locally.
    - The name of the image also contains the host name where the image is hosted. 
    - If there is no host name, the image is hosted on docker hub. For example:
    - The image `ibmcom/websphere-traditional` has no host name. It is hosted on docker hub.
-   - The image we just built, `default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was`, has host name `image-registry.openshift-image-registry.svc`. It is to be hosted in the Openshift image registry for your lab cluster.
+   - The image we just built, `default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was`, has host name `default-route-openshift-image-registry.apps.demo.ibmdte.net`. It is to be hosted in the Openshift image registry for your lab cluster.
    - If you change an image, or build a new image, the changes are only available locally. 
    - You must `push` the image to propagate the changes to the remote registry.
 
@@ -263,7 +263,7 @@ RUN /work/configure.sh
      - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
-     docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
+     docker login -u $(oc whoami) -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
      ```
 
      Example output:

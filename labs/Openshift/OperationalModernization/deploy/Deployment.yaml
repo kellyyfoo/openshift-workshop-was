@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: cos-was
-        image: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
+        image: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
         ports:
           - containerPort: 9080
         livenessProbe:
