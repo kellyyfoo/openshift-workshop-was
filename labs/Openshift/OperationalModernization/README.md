@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading, or hands-on if available)
+- [Analysis](#analysis) (Hands-on)
 - [Build](#build) (Hands-on)
 - [Deploy without operator](#deploy) (Hands-on)
 - [Access the Application without operator](#access-the-application) (Hands-on)
@@ -28,7 +28,7 @@ This repository holds a solution that is the result of an **operational moderniz
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
 
 <a name="analysis"></a>
-## Analysis (hands on)
+## Analysis (Hands-on)
 > NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
 IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 

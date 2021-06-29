@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading only, or hands on if available)
+- [Analysis](#analysis) (Hands-on)
 - [Build](#build) (Hands-on)
 - [Deploy](#deploy) (Hands-on)
 - [Access the Application](#access-the-application-hands-on) (Hands-on)
@@ -30,20 +30,20 @@ deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Pl
 
 
 <a name="analysis"></a>
-## Analysis (Background reading, optionally hands on)
+## Analysis (Hands-on)
 > NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
 IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
 
 The steps needed to analyze the existing Customer Order Services application are:
 
-1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
+1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. To access TA in your lab environment, click **Networking**, then **Routes**. Ensure you are in the **ta** project using the project drop down at the top of the page, and click the link next to **ta-ui-route**. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
 
     ![TA starting page](extras/images/ta-create-collection.png)
 
 1. Name it **RuntimeModernization** and click **Next**. 
 
-    <!-- ![Choose workspace name](extras/images/ta-name-workspace.png) -->
+    ![Choose workspace name](extras/images/ta-name-workspace.png)
     
     You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application; name it **CustomerOrderServices**. Click **Create**. 
     
@@ -53,7 +53,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![TA no recommendations available screen](extras/images/ta-upload.png)
     
-    Upload the results of the data collection (the **datacollector.zip** file provided with this lab) to IBM Cloud Transformation Advisor.
+    Upload the results of the data collection (the [**datacollector.zip**](resources/datacollection.zip) file) to IBM Cloud Transformation Advisor.
     
     ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
 
