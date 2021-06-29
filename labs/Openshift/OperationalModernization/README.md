@@ -359,7 +359,7 @@ Since migrating the database is not the focus of this particular workshop and to
          spec:
            containers:
            - name: cos-was
-             image: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
+             image: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
              ports:
                - containerPort: 9080
              livenessProbe:
@@ -655,7 +655,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
         name: cos-was-rco
         namespace: apps-was
       spec:
-        applicationImage: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
+        applicationImage: image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
         service:
           port: 9080
         readinessProbe:

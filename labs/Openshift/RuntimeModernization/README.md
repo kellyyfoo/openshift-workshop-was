@@ -476,7 +476,7 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
        name: cos
        namespace: apps
      spec:
-       applicationImage: default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
+       applicationImage: image-registry.openshift-image-registry.svc:5000/apps/cos
        envFrom:
        - configMapRef:
            name: cos-config
@@ -872,7 +872,7 @@ metadata:
   name: cos
   namespace: apps
 spec:
-  applicationImage: 'default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos'
+  applicationImage: 'image-registry.openshift-image-registry.svc:5000/apps/cos'
   pullPolicy: Always
   readinessProbe:
     httpGet:

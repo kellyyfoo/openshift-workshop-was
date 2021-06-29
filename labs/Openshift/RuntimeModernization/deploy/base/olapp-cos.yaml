@@ -3,7 +3,7 @@ kind: OpenLibertyApplication
 metadata:
   name: cos
 spec:
-  applicationImage: 'default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos'
+  applicationImage: 'image-registry.openshift-image-registry.svc:5000/apps/cos'
   pullPolicy: Always
   readinessProbe:
     httpGet:
