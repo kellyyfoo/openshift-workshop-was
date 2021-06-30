@@ -100,12 +100,6 @@ In this lab, you'll learn about managing your running applications efficiently u
    oc get route cos
    ```
 
-1. Create your keycloak client configuration by running the following commands: (first with `sed` command to edit/replace the information and then `oc apply` to update the configuration):
-   ```
-   sed -i "s/ENTER_YOUR_APPLICATION_HOSTNAME_HERE/$(oc get route cos -n apps --template='{{ .spec.host }}')/" keycloak/client.yaml
-   oc apply -f keycloak/client.yaml
-   ```
-
 1. Verify your pod is ready:
    ```
    oc get pod 
@@ -117,12 +111,7 @@ In this lab, you'll learn about managing your running applications efficiently u
    ```
 
 1. Point your browser to the above URL. 
-   - You'll be taken to the login form. 
-
-     ![Galaxy Login](extras/images/galaxy-login.jpg)
-
-
-   - Login with user `skywalker` and password `force`. (The user is pre-created/registered in OpenID Connector Provider Keycloak.)
+   - Login with user `skywalker` and password `force`. (The user is pre-created in Liberty's built-in user registry.)
    - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
    - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
    - **Add multiple items to the shopping cart to trigger more logging.**
@@ -271,7 +260,7 @@ A storage must be configured so the generated artifacts can persist, even after 
 
 1. Click on `Create Persistent Volume Claim` button.
 
-1. Ensure that `Storage Class` is `ibmc-block-gold`. If not, make the selection from the list.
+1. Ensure that `Storage Class` is `managed-nfs`. If not, make the selection from the list.
 
 1. Enter `liberty` for `Persistent Volume Claim Name` field.
 
