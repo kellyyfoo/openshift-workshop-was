@@ -68,11 +68,32 @@ For example, docker hub, or registry.access.redhat.com, or your own internal reg
 
 If you need more background on containers: https://www.docker.com/resources/what-container
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+      ![fit to size icon](images/loginvm4.png)
 
 <a name="Check_Environment"> </a>
 ## Check your environment
+1. Open a terminal window.
 
-1. List version of docker: `docker --version`
+2. List version of docker: `docker --version`
    - For more background on docker command line: https://docs.docker.com/engine/reference/commandline/cli/
 
 <a name="Run_Prebuilt"> </a>
@@ -164,9 +185,10 @@ If you need more background on containers: https://www.docker.com/resources/what
     - If the container starts successfully, the executable specified by the `Entrypoint` in the metadata is run. For our sample, it is `/hello-openshift`.
   
 1. Access the application in the container.
-    - If you are running in a server, or the web terminal, try `curl http://localhost:8080`.
-    - If you are running on a desktop, point your browser to `http://localhost:8080`
+    - Open the Firefox Web Browser from inside of the VM and go to the URL `http://localhost:8080`
     - Also try port 8888
+
+   ![hello openshift](images/runprebuilt1.png)
 
 1. Run another instance of the same image. Note that this new instance is assigned new port numbers 8081 and 8889 on the host. This is so that they don't conflict with the ports 8080 and 8888 already allocated to the first instance.
    ```
@@ -174,7 +196,12 @@ If you need more background on containers: https://www.docker.com/resources/what
    ```
     Question: how does this compare to the time it takes to start a new virtual machine?
 
-1. Access the application in the new container the same way. However, use port `8081` and `8889` instead.
+1. Access the application in the new container the same way. 
+   - Return to the Firefox Web Browser but instead go to the URL `http://localhost:8081`
+   - Also try port 8889
+
+   ![hello openshift](images/runprebuilt2.png)
+   
 
 1. Verify there are two containers running in the same host: `docker ps`:
 
@@ -260,6 +287,11 @@ because there is already another copy running in the background that is bound to
 
 1. List running containers: `docker ps`
 
+   ```
+    CONTAINER ID        IMAGE                       COMMAND              CREATED             STATUS                      PORTS               NAMES
+    
+   ```
+
 1. List all containers, including stopped ones: `docker ps -a`
 
     ```
@@ -288,8 +320,28 @@ because there is already another copy running in the background that is bound to
 
     ```
     docker images
+    ```
+    ```
+    REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
+    openshift/hello-openshift   latest              7af3297a3fb4        2 years ago         6.09MB
+    ```
+    
+    ```
     docker rmi openshift/hello-openshift
+    ```
+    ```
+    Untagged: openshift/hello-openshift:latest
+    Untagged: openshift/hello-openshift@sha256:aaea76ff622d2f8bcb32e538e7b3cd0ef6d291953f3e7c9f556c1ba5baf47e2e
+    Deleted: sha256:7af3297a3fb4487b740ed6798163f618e6eddea1ee5fa0ba340329fcae31c8f6
+    Deleted: sha256:8fd6a1ece3ceceae6d714004614bae5b581c83ab962d838ef88ce760583dcb80
+    Deleted: sha256:5f70bf18a086007016e948b04aed3b82103a36bea41755b6cddfaf10ace3c6ef
+    ```
+    
+    ```
     docker images
+    ```
+    ```
+    REPOSITORY                  TAG                 IMAGE ID            CREATED             SIZE
     ```
  
 
@@ -305,8 +357,12 @@ It is configured to run on the WebSphere Liberty Runtime.
 The configuration file for the server is in the server.xml.
 
 1. Change directory to openshift-workshop-was/labs/Openshift/HelloContainer 
+   ```
+   cd openshift-workshop-was/labs/Openshift/HelloContainer 
+   ```
 
 1. Review the provided `Containerfile` from the directory:
+   - ```cat Containerfile```
 
    - the content of `Containerfile`:
     ```
@@ -414,19 +470,11 @@ The configuration file for the server is in the server.xml.
    ```
 
 1. Access the application running in the container:
-   - If you are running in a server, or using the web terminal, run with the curl command:
-     ```
-     curl --insecure https://localhost:9443/app
-     ```
-    and ensure you have output that looks like:
-     ```
-     <html><h1><font color=green>Simple Servlet ran successfully</font></h1>Powered by WebSphere Liberty  <html>
-     ```
-   - If you are running on a desktop with browser,
-     - point your browser to port 9080: `http://localhost:9080/app` 
-     - and check that renders a page showing `Simple Servlet ran successfully`.
+   - Open the Firefox Web Browswer and go to URL `http://localhost:9080/app`
+     - Check that it renders a page showing `Simple Servlet ran successfully`.
      - Also point your browser to 9443:  `https://localhost:9443/app`
-
+    
+   ![hello openshift](images/buildyourown1.png)
 
 1. List the running containers: 
     ```
@@ -512,6 +560,26 @@ Let's simulate a defect fix by building a new image using `Containerfile1` inste
 docker build -t app -f Containerfile1 .
 ```
 
+```
+Sending build context to Docker daemon  32.26kB
+Step 1/5 : FROM ibmcom/websphere-liberty:kernel-java8-ibmjava-ubi
+ ---> bb79b9e26fd3
+Step 2/5 : COPY server.xml  /config
+ ---> Using cache
+ ---> f10659bc62b2
+Step 3/5 : COPY ServletApp.war /config/dropins/app.war
+ ---> Using cache
+ ---> 24d85579e404
+Step 4/5 : RUN /liberty/wlp/bin/installUtility install --acceptLicense /config/server.xml
+ ---> Using cache
+ ---> 5e924d776a9c
+Step 5/5 : RUN echo test1 > /config/test1
+ ---> Running in 08e6135b00f5
+Removing intermediate container 08e6135b00f5
+ ---> 69d20332a5e0
+Successfully built 69d20332a5e0
+Successfully tagged app:latest
+```
 
 Tag it as follows :
 
@@ -536,6 +604,29 @@ A new minor version involves compatible changes beyond just bug fixes. After you
 Build a new image using `Containerfile2`:
 ```
 docker build -t app -f Containerfile2 .
+```
+
+```
+Sending build context to Docker daemon  32.26kB
+Step 1/6 : FROM ibmcom/websphere-liberty:kernel-java8-ibmjava-ubi
+ ---> bb79b9e26fd3
+Step 2/6 : COPY server.xml  /config
+ ---> Using cache
+ ---> f10659bc62b2
+Step 3/6 : COPY ServletApp.war /config/dropins/app.war
+ ---> Using cache
+ ---> 24d85579e404
+Step 4/6 : RUN /liberty/wlp/bin/installUtility install --acceptLicense /config/server.xml
+ ---> Using cache
+ ---> 5e924d776a9c
+Step 5/6 : RUN echo test1 > /config/test1
+ ---> Using cache
+ ---> 69d20332a5e0
+Step 6/6 : RUN echo test2 > /config/test2
+ ---> Running in 96ea24b9ba66
+Removing intermediate container 96ea24b9ba66
+ ---> 31b27169b3bc
+Successfully built 31b27169b3bc
 ```
 
 Tag it as  follows:
@@ -570,5 +661,3 @@ Congratulations! You have completed the **Introduction to Containerization** lab
 ## Next
 Please follow the link to do the next lab **Introduction to Container Orchestration using Openshift**:
 - [Introduction to Container Orchestration using Openshift](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift)
-
-

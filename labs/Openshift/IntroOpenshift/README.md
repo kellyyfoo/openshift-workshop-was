@@ -12,46 +12,62 @@ In this lab, we will introduce you to the basics of container Orchestration usin
 - You have the access to OpenShift Web Console with IBM Cloud account ID login. 
 - You have cloned the lab into your working directory through the web terminal session. 
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](images/loginvm4.png)
+      
+
 ## Deploy the hello-openshift image through the web console
 
 ### Login to the web console
-The instruction to access the web console is at: [Lab Setup](https://github.com/IBM/openshift-workshop-was/tree/master/setup).  You may need to re-login (by pointing to https://cloud.ibm.com with your IBM Cloud account ID) when the console session is expired.
+1. Open the Firefox Web Browser from the VM. 
+2. Click on the **openshift console** bookmark at the top left of the browser window to access the OpenShift Container Platform web console.
 
-### Administrator vs Developer View
-   
-1. Switch from `Administrator` to `Developer` using the drop-down when you first log in to access OpenShift Web Console:
+   ![console](images/loginconsole1.png)
 
-    ![Admin Mode](images/admin_dashboard.jpg)
-    
-   - if you have a previously opened console page which may land at certain page such as Networking, to see the `Administrator` view drop-down, scroll the bar up from the left side of navigation, for example, 
-   
-    ![Admin Navigation](images/admin_navigation.jpg)
-    
-1. Note you have fewer and different options with `Developer` view, which is for developer working with their projects. 
+3. This will take you to a login screen. Click on the **htpasswd** login option.
+
+   ![console](images/loginconsole2.png)
  
-    ![Developer Mode](images/DevMode.jpg)
+4. Log in to the account using the following credentials:
+   * Username: **ibmadmin**
+   * Password: **engageibm**
+
+    ![console](images/loginconsole3.png)
 
 
-1. Switch back to `Administrator` view, which gives you access to more options. We will concentrate on `Administrator` view in this lab.
+### Overview
 
-   ![Admin vs Developer](images/AdminDevToggle.jpg)
+1. Click on the overview to view summary of events:
 
-
-### Dashboard
-
-1. Click on the dashboard to view summary of events:
-
-    ![Dashboard](images/Dashboard1.jpg)
+    ![Overview1](images/overview1.png)
 
 
 1. Scroll down to view the utilization of cluster resources:
 
-    ![Dashboard2](images/Dashboard2.jpg)
+    ![Overview2](images/overview2.png)
 
 
 1. Scroll down more to view the cluster inventory. Click through each item in the inventory to find out more:
 
-    ![inventory](images/ClusterInventory.jpg)
+    ![Overview3](images/overview3.png)
 
     Note that:
 
@@ -65,9 +81,9 @@ The instruction to access the web console is at: [Lab Setup](https://github.com/
 Openshift `projects` allow you to group related resources together and to assign them separate management policies. 
 It is common for artifacts related to different applications to be assigned to different `projects`. Resources that belong to the same project are stored in the same Kubernetes `namespace`.
 
-1. Click on `Projects` followed by *Create Project*:
+1. Click on `Projects` followed by **Create Project**:
 
-    ![Projects](images/CreateProject.jpg)
+    ![projects1](images/projects1.png)
 
 1. In the dialog, enter `myproject` as project name, then click **Create**:
 
@@ -94,7 +110,7 @@ The typical artifacts you will need to run an application in Openshift are:
 
 #### First deployment 
 
-1. Click Deployment, followed by Create Deployment:
+1. Under the **Workloads** tab, click **Deployments**, followed by **Create Deployment**:
 
     ![Create Deployment](images/CreateDeployment.jpg)
 
@@ -253,7 +269,7 @@ That is the reason that `Pods` tab is under the `deployment` resource you just c
 
 A service enables the pods we just created to be load balanced within the Openshift cluster. 
 
-1. Scroll down to the `Networking` section on the left navigation, click `Service`, then click `Create Service`:
+1. Scroll down to the **Networking** tab on the left navigation, click **Services**, then click **Create Service**:
 
     ![Create Service](images/CreateService.jpg)
 
@@ -335,8 +351,6 @@ A route exposes your internal endpoints outside your cluster's built-in firewall
     ![Create Route](images/CreateRouteAccessRouteResult.jpg)
 
 
-**Note: If you are unable to access your application, you probably made typos along the way. For the sake of time, we recommend that you proceed to complete the rest of the lab. The deployment steps are repeated in a different project in the command line portion fo this lab. In the long run, you will be using the command line more ferquently to manage your resources.**
-
 
 ### Changing Replica Instances
 
@@ -393,17 +407,12 @@ The command line tools may be used to:
 - Update existing resources
 - Delete resources
 
-Recall that Openshift implements a controller model: the REST data structure contains the specification, and controllers performs any operations required to conform to the specification. 
-This also makes it easy for you to store and version the REST specification in a source control repository. 
-If you make changes, just re-apply the specification via the command line tool.
 
 ###  Command Line Terminal
 
-You may run this part of the lab from any terminal where the oc command is installed. 
-If your lab environment is provided on the IBM public cloud, you will be using the web terminal. 
-Instructions to access the web terminal is at: [Lab Setup](https://github.com/IBM/openshift-workshop-was/tree/master/setup).
+The oc command is already installed on your VM's terminal.
 
-After you get into the your command line terminal, clone the lab to your local directory via:
+Open a terminal window from the VM and clone the lab to your local directory via:
 
 ```
 git clone https://github.com/IBM/openshift-workshop-was.git
@@ -411,23 +420,28 @@ git clone https://github.com/IBM/openshift-workshop-was.git
 
 Change directory to:  `openshift-workshop-was/labs/Openshift/IntroOpenshift`
 
+```
+cd openshift-workshop-was/labs/Openshift/IntroOpenshift
+```
+
 ### Login
 
-1. From the Openshift console, click on the twisty next to your login name and select `Copy Login Command`.
+1. Return to the Openshift console, click on the arrow next to your login name and select `Copy Login Command`.
 
-    ![Copy Login Command](images/CopyLoginCommand.jpg)
+    ![Login1](images/login1.png)
 
 1. In the new window that pops up, click on `Display Token`:
 
     ![Display Token](images/DisplayToken.jpg)
 
-1. Copy the `oc login` line and paste it into your web terminal.
+1. Copy the `oc login` command and paste it into your web terminal.
 
     ```
     oc login --token=<TOKEN> --server=<SERVER Address>
-    example:
-    oc login --token=leNc4evUo2H0tGu5ZWkygluw4aew979rZ7VvxillNdI --server=https://c100-e.us-south.containers.cloud.ibm.com:30870
     ```
+    
+    ![Login2](images/login2.png)
+    
 
 1. After login, the project last accessed is displayed, and it may or may not be the `default` project shown below:
 
@@ -445,7 +459,7 @@ Use `oc api-resources` to list all available resource kinds.
 Note that resources in Openshift have a group, version, and kind. 
 Some resources are global (not in a namespace), while others are scoped to a namespace.
 Many resources also have short names to save typing when using the command line tool. 
-For example, you may use cm instead of ConfigMap as a command line parameter when the parameter is for a `KIND`.
+For example, you may use `cm` instead of ConfigMap as a command line parameter when the parameter is for a `KIND`.
 Example output:
 
 ```
@@ -571,9 +585,13 @@ nodes                                 no                                        
    -rw-r--r--. 1 root root   207 Apr  9 01:13 Service.yaml
    -rw-r--r--. 1 root root   384 Apr  9 01:13 Deployment.yaml
    ```
-1. Review the contents of `Deployment.yaml` (using `cat` or `vi` command) and note that it is identical to the to the deployment from the last section except for the namespace. This allows us to deploy the same image in a different project. Using the same image customized for different environments is an important concept that will be covered further in future labs.
+2. Review the contents of `Deployment.yaml` and note that it is identical to the to the deployment from the last section except for the namespace. This allows us to deploy the same image in a different project. Using the same image customized for different environments is an important concept that will be covered further in future labs.
 
-    ```
+   ```
+   cat Deployment.yaml
+   ```
+
+   ```
     apiVersion: apps/v1
     kind: Deployment
     metadata:
@@ -594,16 +612,16 @@ nodes                                 no                                        
               image: openshift/hello-openshift
               ports:
                 - containerPort: 8080
-    ```
+   ```
 
 
-1. Apply the deployment via the command line: `oc apply -f Deployment.yaml`
+3. Apply the deployment via the command line: `oc apply -f Deployment.yaml`
 
     ```
     deployment.apps/example created
     ```
     
-1. Check the status of deployment: `oc get deployment example -o yaml`. If the status does not show available replica count of 2, wait a few seconds before retrying.
+4. Check the status of deployment: `oc get deployment example -o yaml`. If the status does not show available replica count of 2, wait a few seconds before retrying.
 
     ```
     apiVersion: extensions/v1beta1
@@ -811,6 +829,10 @@ nodes                                 no                                        
 
 1. Take a look at `Service.yaml` and note that it's for the `project1` namespace:
 
+   ```
+   cat Service.yaml
+   ```
+   
     ```
     apiVersion: v1
     kind: Service
@@ -859,6 +881,13 @@ nodes                                 no                                        
    ```
    echo http://$(oc get route example --template='{{ .spec.host }}')
    ```
+   * Output:
+   ```
+   http://example-project1.apps.demo.ibmdte.net
+   ```
+2. Open your Firefox browser again and visit the URL outputted by the previous command. You should see a web page displaying the following message:
+
+   ![firstapplication1](images/firstapplication1.png)
 
 ### Changing Replica Instance
 
