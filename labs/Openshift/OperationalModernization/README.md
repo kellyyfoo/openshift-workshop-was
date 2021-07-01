@@ -17,15 +17,34 @@
 **Operational modernization** gives an operations team the opportunity to embrace modern operations best practices without putting change requirements on the development team. 
 Modernizing from WebSphere Network Deployment (ND) to the **traditional WebSphere Application Server Base V9 runtime** in a container allows the application to be moved to the cloud without code changes.
 
-The scaling, routing, clustering, high availability and continuous availability functionality that WebSphere ND previously provided will be handled by containers orchestrator Red Hat OpenShift and allows the operations team to run cloud-native and older applications in the same environment with the same standardized logging, monitoring and security frameworks.
+The scaling, routing, clustering, high availability and continuous availability functionality that WebSphere ND previously provided will be handled by Red Hat OpenShift and allows the operations team to run cloud-native and older applications in the same environment with the same standardized logging, monitoring and security frameworks.
 
 While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, it can still be run in container and will receive the benefits of the consistency and reliability of containers as well as helping to improve DevOps and speed to market.
 
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
 
-This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v9.0.5 to the traditional WebSphere Base v9 container and is deployed to RedHat OpenShift Container Platform (OCP).
-
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
+
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](images/loginvm4.png)
 
 <a name="analysis"></a>
 ## Analysis (Hands-on)
@@ -93,11 +112,17 @@ For a more detailed walkthrough of the Transformation Advisor process, see [this
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on traditional WebSphere Base v9.
 
-Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So, let's kick that process off and before explaining what you did. The image should be built by the time you complete this section.
+Building this image could take around ~8 minutes. So, let's kick that process off before explaining what you did. The image should be built by the time you complete this section.
 
-1. Open a terminal in your lab environment. If you are using a web terminal (you will have set one up in lab setup) for command line interface, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a new terminal window from the VM desktop.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from your terminal.  Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
+    ![terminal window](images/build1.png)
+
+1. Login to OpenShift CLI with the `oc login` command from the web terminal. When prompted for the username and password, enter the following login credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+    
+      ![oc login](images/build2.png)
 
 1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
@@ -111,8 +136,6 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
     ```
 
 1. Run the following command to create a new project named `apps-was` in OpenShift. 
-   - A project allows a community of users to organize and manage their content in isolation from other communities.
-   - Reminder: Ensure you have run `oc login` command as directed in the step above before using OpenShift CLI.
    
      ```
      oc new-project apps-was
@@ -124,91 +147,10 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
      . . .
      ```
      
-1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building continue with rest of the lab:
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). 
     ```
     docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
     ```
-
-### Managing Build artifacts
-
-As per container's best practices, you should always build immutable images. 
-You should create a new image which adds a single application and corresponding configuration. 
-You should avoid configuring the image manually (after it is built) via Admin Console or wsadmin (unless it is for debugging purposes) because such changes won't be present if you spawn a new container from the image. 
-
-There are two ways to modify the configuration of the traditional WebSphere image during the build:
-- via `wsadmin` scripting
-- via `properties file based configuration`.
-
-First review the wsadmin script, based on an existing Customer Order Services script running on-prem. 
-The contents of the script is found [here](config/cosConfig.py).
-This script enables application security, creates users and JDBC provider for a DB2 database. 
-It also enables JPA 2.0 and JAX-RS 1.1, which are not defaults on WebSphere 9.0.
-
-- `AdminTask.modifyJPASpecLevel(Server, '[ -specLevel 2.0]')`
-- `AdminTask.modifyJaxrsProvider(Server, '[ -provider 1.1]')`
-
-For `properties file based configuration`, review the properties file found [here](config/app-update.props).
-This properties file is used to install the application, which is an alternate way to install applications or apply configurations. 
-The application could also have been installed using the wsadmin scripting, but we chose to use the properties file to show the second methods of configurations.
-
-
-The first block of the properties file specifies Application resource type, followed by the property values, including the location of the ear file:
-
-```
-ResourceType=Application
-ImplementingResourceType=Application
-CreateDeleteCommandProperties=true
-ResourceId=Deployment=CustomerOrderServicesApp
-
-Name=CustomerOrderServicesApp
-TargetServer=!{serverName}
-TargetNode=!{nodeName}
-EarFileLocation=/work/apps/CustomerOrderServicesApp.ear
-```
-
-The values of the properties file variables are specified towards the end:
-
-```
-cellName=DefaultCell01
-nodeName=DefaultNode01
-serverName=server1
-```
-
-### Build instructions
-
-Let's review the contents of the Dockerfile:
-
-```dockerfile
-FROM ibmcom/websphere-traditional:latest
-
-COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
-
-COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
-
-COPY --chown=1001:0 config/cosConfig.py /work/config/
-
-COPY --chown=1001:0 config/app-update.props  /work/config/
-
-COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
-
-RUN /work/configure.sh
-```
-
-- The base image for our application image is `ibmcom/websphere-traditional`, which is the official image for traditional WAS Base in container.
-
-- We need to copy everything that the application needs into the container. So, we copy the db2 drivers which are referenced in the wsadmin jython script. 
-
-- For security, traditional WebSphere Base containers run as non-root. This is in fact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So, change user and group using `--chown=1001:0` command.
-
-- Specify a password for the wsadmin user at `/tmp/PASSWORD`. This is optional. A password will be automatically generated if one is not provided. This password can be used to login to Admin Console (should be for debugging purposes only).
-
-- We copy `cosConfig.py` jython script and the `app-update.props` file into `/work/config/` folder, so they are run automatically during image creation.
-
-- Then we copy application ear to the `EarFileLocation` referenced in `app-update.props`
-
-- Then we run the `/work/configure.sh` which will start the server and run the scripts and apply the properties file configuration to new image.
-
-- Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
 ### Build image (Hands-on)
 
@@ -280,6 +222,29 @@ RUN /work/configure.sh
 
      ```
      docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
+     ```
+
+     Example output: 
+     ```
+      Using default tag: latest
+      The push refers to repository [default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was]
+      470e7d3b0bec: Pushed 
+      c38e61da8211: Pushed 
+      2a72e88fe5eb: Pushed 
+      334c79ff1b2e: Pushed 
+      ccf8ea26529f: Pushed 
+      af0f17433f77: Pushed 
+      4254aef2aa12: Pushed 
+      855301ffdcce: Pushed 
+      ea252e2474a5: Pushed 
+      68a4c9686496: Pushed 
+      87ecb86bc8e5: Pushed 
+      066b59214d49: Pushed 
+      211f972e9c63: Pushed 
+      b93eee2b1ddb: Pushed 
+      a6ab5ae423d9: Pushed 
+      3f785cf0a0ae: Pushed 
+      latest: digest: sha256:4f4e8ae82fa22c83febc4f884b5026d01815fc704df6196431db8ed7a7def6a0 size: 3672
      ```
 
 1. Verify that the image is in the image registry. The following command will get the images in the registry. OpenShift stores various images needed for its operations and used by its templates in the registry. Filter through the results to only get the image you pushed. Run the following command:
