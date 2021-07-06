@@ -17,8 +17,6 @@
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast start-up times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
-Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes may be required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
-
 **This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
 
 This lab demonstrates **runtime modernization**.
@@ -31,13 +29,29 @@ deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Pl
 
 <a name="analysis"></a>
 ## Analysis (Hands-on)
-> NOTE: If your lab environment includes Transformation Advisor, you can follow along with these steps. Otherwise, read on to follow how an existing environment can be analyzed so you can make decisions on which applications to modernize and what path to follow with those applications.
 
-IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
+A general overview on the IBM Cloud Transformation Advisor was given in the previous lab [Operational Modernization](../OperationalModernization). In this lab, we will demonstrate how the Transformation Advisor can be used specifically in the runtime modernization process.
 
 The steps needed to analyze the existing Customer Order Services application are:
 
-1. Deploy the IBM Cloud Transformation Advisor available as part of IBM WebSphere Hybrid Edition on an OCP cluster. Transformation Advisor Local can also be used with Docker on a workstation or VM. To access TA in your lab environment, click **Networking**, then **Routes**. Ensure you are in the **ta** project using the project drop down at the top of the page, and click the link next to **ta-ui-route**. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
+1. Open a Firefox browser window from within the VM. 
+    ![firefox](extras/images/analysis1.png)
+
+1. Click on the **openshift console** bookmark in the top left and log in with the **htpasswd** option.
+
+    ![openshift console](extras/images/analysis2.png)
+
+1. Log in to the OpenShift account using the following credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+
+    ![login](extras/images/analysis3.png)
+
+1. From the Red Hat OpenShift Container Platform console, go to the **Networking** tab and click on **Routes**. Ensure that you are in the **ta** project by using the project drop down and click on the Location URL next to **ta-ui-route**.
+
+    ![ta](extras/images/analysis4.png)
+
+1. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
 
     ![TA starting page](extras/images/ta-create-collection.png)
 
@@ -59,7 +73,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
 1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
 
-    ![TA recommendations screen for the data collection](extras/images/ta-migration-target.png)
+    ![TA recommendations screen for the data collection](extras/images/analysis5.png)
     
     Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This shows an entry for each application for each compatible destination runtime you can migrate it to.
     
@@ -69,25 +83,21 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![TA choosing CustomerOrderServices Open Liberty target](extras/images/ta-cos-ol.png)
     
-1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to Open Liberty, so it is a good candidate to proceed with the operational modernization. (Note: there may be a severe issue related to third-party APIs, but this doesn't apply as they occur in test code.)
+1. Look over the migration analysis which shows a summary of the complexity of migrating this application to this target. In summary, migration of this application to Open Liberty is of **Moderate** complexity as some code changes may be required. (Note: there may be a severe issue related to third-party APIs, but this doesn't apply as they occur in test code.)
 
-    ![TA detailed analysis for CustomerOrderServices](extras/images/ta-detailed-analysis.png)
+    ![TA detailed analysis for CustomerOrderServices](extras/images/analysis6.png)
 
-1. Notice that one of the issues at the **Suggested** severity is **Behavior change on lookups for Enterprise JavaBeans in previous versions of Liberty**. This issue used to be **Severe** and caused **CustomerOrderServicesApp.ear** to require code changes in order to run on Open Liberty. However, support for the form of lookups used in WebSphere traditional was added in Open Liberty version 20.0.0.12, so these code changes are no longer mandatory. 
-
-    The **CustomerOrderServicesApp.ear** application included in the lab files includes this code change. This is to conform to the newer way of looking up beans, ensuring the app will be able to run even on prior versions of Open Liberty.
 
 1. Click on **View migration plan** in the top right corner of the page. 
     
-    ![TA migration plan button](extras/images/ta-migration-bundle-button.png)
+    ![TA migration plan button](extras/images/analysis7.png)
     
     This page will help you assemble an archive containing:
     - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
-    - any required drivers or libraries (you upload these here or specify Maven coordinates to download them)
     - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
     - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
 
-    ![TA migration plan page](extras/images/ta-migration-bundle.png)
+    ![TA migration plan page](extras/images/analysis8.png)
 
 > NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
 
@@ -96,12 +106,17 @@ The steps needed to analyze the existing Customer Order Services application are
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on Liberty.
 
-Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). 
-Let's kick that process off and then come back to learn what you did.
+Building this image could take around ~3 minutes so let's kick that process off and then come back to learn what you did.
 
-1. Open a terminal in your lab environment. If you are using a web terminal (you will have set one up in lab setup) for command line interface, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a new terminal window from the VM desktop.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login --token= ... --server= ...` command from your terminal. Without a successful `oc login`, attempting to run the follow-on `oc` commands (e.g., `oc new-project ...`),  you will get a permission error.
+    ![terminal window](extras/images/build1.png)
+
+1. Login to OpenShift CLI with the `oc login` command from the web terminal. When prompted for the username and password, enter the following login credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+    
+      ![oc login](extras/images/build2.png)
 
 1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
@@ -120,45 +135,17 @@ Let's kick that process off and then come back to learn what you did.
    docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos .
    ```
 
-### Library changes (for reading only)
+## Modernize with MicroProfile (for reading only)
+Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. However, even though our application has not been refactored into microservices, we can still take advantage of some of the technologies from MicroProfile.
 
-- Simple code changes for the EJB lookups were suggested by IBM Cloud Transformation Advisor. While the severity of these occurrences is minor on the latest version of Open Liberty, the decision was made to make the changes due to the requirement to make them if running on an older version of Open Liberty. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of Transformation Advisor:
+### Determine application's availability (for reading only)
 
-  ![Analysis](extras/images/analysis.png)
+In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that an application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
 
-- Below is an example of the code changes required for one of the three Java classes. The `org.pwte.example.resources.CategoryResource.java` is changed from using `ejblocal` as shown below:
-
-  Before:
-
-    ```java
-    ...
-    InitialContext().lookup("ejblocal:org.pwte.example.service.ProductSearchService");
-    ...
-    ```
-
-  After:
-
-  ```java
-  ...
-  InitialContext().lookup("java:app/CustomerOrderServices/ProductSearchServiceImpl!org.pwte.example.service.ProductSearchService");
-  ...
-  ```
-
-- Upgraded to Java EE8. Changed from using annotations from _jackson_ to _jsonb_. For example, changed from `@JsonProperty(value="id")` to `@JsonbProperty(value="id")`.
-
-
-### Modernize with MicroProfile (for reading only)
-
-We used the opportunity to make code changes to modernize some aspects of the application as well. Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. However, even though our application has not been refactored into microservices, we can still take advantage of some of the technologies from MicroProfile.
-
-#### Determine application's availability (for reading only)
-
-In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
-
-MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
+MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically, and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
 
 We implemented the following health checks:
-- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): The application reports it is ready as long as the readiness check endpoint can be reached. If connections to other services, or any other condition were required to be met before the application was considered ready, they could be checked for here.
+- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): The application reports it is ready as long as the readiness check endpoint can be reached. Connections to other services and any other required conditions for the application to be considered ready are checked here.
 
   ```java
   return HealthCheckResponse.named("Readiness").up().build();
@@ -181,9 +168,9 @@ We implemented the following health checks:
     return HealthCheckResponse.named("Liveness").up().build();
     ```
 
-#### Adding metrics to application (for reading only)
+### Adding metrics to application (for reading only)
 
-MicroProfile Metrics is used to gather metrics about the time it takes to add an item to cart, retrieve customer information and to count the number of time these operations are performed.
+MicroProfile Metrics is used to gather metrics about the time it takes to add an item to cart, retrieve customer information, and count the number of times these operations are performed.
 
   ```java
   @GET
@@ -194,85 +181,19 @@ MicroProfile Metrics is used to gather metrics about the time it takes to add an
   {
   ```
 
-### Liberty server configuration (for reading only)
+## Liberty server configuration (for reading only)
 
 The Liberty runtime configuration files are based on a template provided by IBM Cloud Transformation Advisor.  
-For this lab, instead of using a single server.xml, the configurations have been split into multiple configuration files and placed into [config/configDropins/overrides](config/configDropins/overrides) directory.
+For this lab, instead of using a single server.xml, the configurations have been split into multiple configuration files and placed into the [config/configDropins/overrides](config/configDropins/overrides) directory.
 
 - You may place configuration files into configDropins/overrides directory to override pre-existing configurations.
-- You may define separate template configurations that reflect the resources in your environment, and copy them into the configDropsins/overrides directory only for those applications that need them. For example,
-  - separate configuration files for each database. (Our sample application only uses one.)
-  - separate configuration files for each messaigng provider
-  - separate configuration files for different security requirements. 
-
-Have a look at the configuration files and note:
-
-  - The necessary features, including those for MicroProfile, are enabled (e.g. `jdbc-4.2, jaxrs-2.1, mpHealth-2.1`).
-
-  - An HTTP endpoint is configured by:
-    ```xml
-    <httpEndpoint httpPort="-1" httpsPort="9443" accessLoggingRef="accessLogging" id="defaultHttpEndpoint"/>
-    ```
-  
-  - Access logging is enabled to record all inbound client requests handled by HTTP endpoint. We'll visualize this data later in dashboard to identify and analyze potential problems. 
-
-  - Application with appropriate security role and classloader visibility is specified by `application` element.
-
-  - Database is configured using the `dataSource` element. Note that Liberty variables are used for certain attributes (e.g. `serverName="${DB_HOST}"`). 
-  This allows the same image to be instainated in different environments (e.g. production vs testing). Specifically for this lab, the values of `DB_USER` and `DB_PASSWORD` are configured via Kuberntes secrets. 
-  When the container starts, thery are injected into the container as environment variables for the Liberty runtime to pick up. How this works is explained later.
-
-  - `basicRegistry` provides an easy way to define an internal user registry. It is used to secure the CustomerOrderServices applicatin, as well as endpoints such as _/metrics_. The `admin` user is granted the `administrator` role.
+- You may define separate template configurations that reflect the resources in your environment, and copy them into the configDropsins/overrides directory only for those applications that need them. 
 
 
-### Build instructions (for reading only)
-
-The `Dockerfile` required to build the immutable image containing the application and Liberty runtime was created from the template provided by IBM Cloud Transformation Advisor. 
-Here is the final version of the file:
-
-  ```dockerfile
-  ## Build stage
-  FROM maven:latest AS builder
-  COPY app/ /
-  RUN cd CustomerOrderServicesProject && mvn clean package
-
-  ## Application image
-  FROM openliberty/open-liberty:full-java8-openj9-ubi
-
-  COPY --chown=1001:0 resources/ /opt/ol/wlp/usr/shared/resources/
-
-  COPY --chown=1001:0 config/server.xml /config/
-
-  COPY --chown=1001:0 config/configDropins/overrides/*.xml /config/configDropins/overrides/
-  
-  COPY --from=builder --chown=1001:0 CustomerOrderServicesApp/target/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /config/apps/CustomerOrderServicesApp.ear
-
-  RUN configure.sh
-  ```
-
-  - This is a multi-stage Dockerfile, as indicated by the 2 instructions with `FROM`. The first stage builds the application using Maven. It uses the base image from Maven, copies the application source and then builds using Maven commands. The second stage is the actual application image, which uses the _ear_ file produced by the first stage. 
-
-  - The base image for this application image is `openliberty/open-liberty`, which is the official image for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel-slim`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `21.0.0.3-full-java8-openj9-ubi`).
-
-  - Copy everything that the application needs into the container including the necessary db2 drivers.
-  
-  - For security, Liberty containers run as non-root. This is in fact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
-
-  - Next, copy empty configuration file into `/config/server.xml`.
-
-  - Then copy the actual configuration files into `/config/configDropsins/overrides` directory.
-
-  - Then copy application ear, produced by the first build stage. This is indicated by the `--from=builder`.
-
-  - As last step run `/configure.sh` which will populate shared classes cache to create a fit-for-purpose image.
-
-  Remember that each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
-
-
-### Build image (Hands-on)
+## Build image (Hands-on)
 
 1. Go back to your terminal to check the build you started earlier.
-   You should see the following message if image was built successfully. Please wait if it's still building:
+   You should see the following message if the image was built successfully. Please wait if it's still building:
 
    ```
    Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos:latest
@@ -284,7 +205,7 @@ Here is the final version of the file:
    docker images
    ```
 
-   - You should see the following images on the output. Notice that the base image, _openliberty/open-liberty_, is also listed. It was pulled as the first step of building application image.
+   - You should see the following images on the output. Notice that the base image, `openliberty/open-liberty`, is also listed. It was pulled as the first step of building application image.
 
      Example output:
      ```
@@ -296,7 +217,6 @@ Here is the final version of the file:
      ```
 
 1. Before we push the image to OpenShift's internal image registry, create a separate project named `apps`.  
-   Reminder: Ensure you have run `oc login --token= ...  --server= ...` command as directed in the [Build](#build) section before using OpenShift CLI.
    
    Choose one of two ways to create the project:
    
@@ -307,15 +227,22 @@ Here is the final version of the file:
      
      Example output:
      ```
-     Now using project "apps" on server "https://c115-e.us-south.containers.cloud.ibm.com:32661".
+     Now using project "apps" on server "https://api.demo.ibmdte.net:64
      . . .
      ```
      
-   - Via the console, from the left-panel: 
-     - Click on **Home** > **Projects**. 
-     - Click on `Create Project` button.
-     - Enter `apps` for the _Name_ field and click on `Create`.
-     - Go back to your terminal. 
+   - Via the OpenShift console:
+     - Open a Firefox browser window and click on the **openshift console** bookmark.
+     - Under the **Home** tab on the left menu, click **Projects**. 
+     - Click on the **Create Project** button.
+
+        ![createproject](extras/images/buildimage1.png)
+
+     - Enter `apps` for the _Name_ field and click on **Create**.
+
+        ![createproject](extras/images/buildimage2.png)
+
+     - Return to your terminal window.
      - Switch the current project in the command line to `apps` 
        ```
        oc project apps
@@ -335,12 +262,12 @@ Here is the final version of the file:
      namespace/apps labeled
      ```
      
-   - Via the console, from the left-panel, 
-     - Click on **Administration** > **Namespaces** 
+   - Via the OpenShift console:
+     - Under the **Administration** tab on the left menu, click on **Namespaces**.
      - Click on the menu-options for `apps` namespace 
-     - Click on `Edit Labels`
-     - Copy and paste `app-monitoring=true` into the text box 
-     - Click `Save`
+     - Click on **Edit Labels**.
+     - Copy and paste `app-monitoring=true` into the text box .
+     - Click **Save**.
 
        ![Add label to namespace](extras/images/add-monitor-label.gif)
 
@@ -404,7 +331,7 @@ Here is the final version of the file:
 
      Example output:
      ```
-     sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
+     sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   image-registry.openshift-image-registry.svc:5000/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
      ```
 
 1. Verify the image stream is created via the command line:
@@ -420,9 +347,13 @@ Here is the final version of the file:
    ```
 
 1. You may also check the image stream via the console: 
-   - From the left-panel, click on **Builds** > **Image Streams**. 
-   - Then select `apps` from the _Project_ drop-down list. 
+   - Return to the OpenShift console through your Firefox browser window.
+   - Under the **Builds** tab in the left menu, click on **Image Streams**. 
+   - Select project `apps` from the **Project** drop-down list. 
    - Click on `cos` from the list. 
+
+      ![imagestream](extras/images/buildimage3.png)
+
    - Scroll down to the bottom to see the image that you pushed.
    
      ![apps imagestream](extras/images/apps-imagestream.png)
@@ -431,7 +362,7 @@ Here is the final version of the file:
 <a name="deploy"></a>
 ## Deploy (Hands-on)
 
-Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already pre-configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_ and the application references database using the address of the _Service_.
+Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already pre-configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_, and the application references this database using the address of the _Service_.
 
 1. Deploy the application using the `-k`, or `kustomize` option of Openshift CLI now and we will explain how the deployment works in a later section. 
    - Preview what will be deployed:
@@ -540,8 +471,8 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
 
     Example output:
     ```
-    NAME   HOST/PORT                                                                                            PATH   SERVICES   PORT       TERMINATION          WILDCARD
-    cos    cos-apps.mchengupdate2-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud          cos        9443-tcp   reencrypt/Redirect   None
+    NAME   HOST/PORT                       PATH   SERVICES   PORT       TERMINATION          WILDCARD
+    cos    cos-apps.apps.demo.ibmdte.net          cos        9443-tcp   reencrypt/Redirect   None
     ```
 
 1. Verify your pod from the project `apps` is ready:
