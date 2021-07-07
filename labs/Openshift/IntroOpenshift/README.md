@@ -38,7 +38,8 @@ In this lab, we will introduce you to the basics of container Orchestration usin
 
 ### Login to the web console
 1. Open the Firefox Web Browser from the VM. 
-2. Click on the **openshift console** bookmark at the top left of the browser window to access the OpenShift Container Platform web console.
+   ![firefox](images/runprebuilt3.png)
+2. Select the **openshift console** bookmark at the top left of the browser window to access the OpenShift Container Platform web console.
 
    ![console](images/loginconsole1.png)
 
@@ -55,7 +56,7 @@ In this lab, we will introduce you to the basics of container Orchestration usin
 
 ### Overview
 
-1. Click on the overview to view summary of events:
+1. Click on the **Overview** tab under **Home** in the left menu to view a summary of events:
 
     ![Overview1](images/overview1.png)
 
@@ -65,13 +66,13 @@ In this lab, we will introduce you to the basics of container Orchestration usin
     ![Overview2](images/overview2.png)
 
 
-1. Scroll down more to view the cluster inventory. Click through each item in the inventory to find out more:
+1. Scroll further down to view the cluster inventory. Click through each item in the inventory to find out more:
 
     ![Overview3](images/overview3.png)
 
     Note that:
 
-    - nodes represent physical or virtual hardware that your Openshift cluster is running.
+    - Nodes represent physical or virtual hardware that your Openshift cluster is running.
     - Pods are used to host and run one or more containers. Each node may run multiple pods. Containers in the same pod share the same network and storage.
     - Storage classes represent the different types of storage configured and made available for your Openshift cluster. 
     - Persistent Volume Claims (PVCs) represent the usage of storage by the pods. After a pod is removed, data not persistent to persistent storage are gone.
@@ -81,7 +82,7 @@ In this lab, we will introduce you to the basics of container Orchestration usin
 Openshift `projects` allow you to group related resources together and to assign them separate management policies. 
 It is common for artifacts related to different applications to be assigned to different `projects`. Resources that belong to the same project are stored in the same Kubernetes `namespace`.
 
-1. Click on `Projects` followed by **Create Project**:
+1. Click on the **Projects** tab under **Home** in the left menu, followed by **Create Project**:
 
     ![projects1](images/projects1.png)
 
@@ -240,7 +241,7 @@ The typical artifacts you will need to run an application in Openshift are:
 
 1. Note that:
 
-    - There are quite a bit more `metadta`. `Metadata` may be added by any number of controllers as needed to help with their function.
+    - There are quite a bit more `metadata`. Metadata may be added by any number of controllers as needed to help with their function.
     - The `spec` has more attributes filled in as well. These are default values that were not specified in our original YAML file. But sometimes it is also possible that some values are overridden by background admission controllers.
     - The `status` sub-resource is how Openshift communicates that status of the resource. The `status` is updated regularly as the underlying state of the resource changes.
 
@@ -327,7 +328,7 @@ A service enables the pods we just created to be load balanced within the Opensh
 
 A route exposes your internal endpoints outside your cluster's built-in firewall. 
 
-1. Click on `Route` in the left navigation, then click `Create Route`:
+1. Click on the **Route** tab under **Networking** in the left navigation, then click **Create Route**:
 
     ![Create Route](images/CreateRoute.jpg)
 
@@ -354,7 +355,7 @@ A route exposes your internal endpoints outside your cluster's built-in firewall
 
 ### Changing Replica Instances
 
-1. Click on `Projects` from the left navigation, then click on `myproject`:
+1. Click on the **Projects** tab under **Home** from the left navigation, then click on `myproject`:
 
     ![Locate Myproject](images/LocateMyproject.jpg)
 
@@ -375,7 +376,7 @@ A route exposes your internal endpoints outside your cluster's built-in firewall
 
     ![Delete Pod](images/DeletePodRecreate.jpg)
 
-1. To change the number of instances, you will need to change the specification of your deployment. Click on Deployments in the left navigation, then click on `example` deployment:
+1. To change the number of instances, you will need to change the specification of your deployment. Click on the **Deployments** tab under **Workloads** in the left navigation, then click on `example` deployment:
 
     ![Locate Deloyment](images/LocateDeployment.jpg)
 
@@ -410,9 +411,11 @@ The command line tools may be used to:
 
 ###  Command Line Terminal
 
-The oc command is already installed on your VM's terminal.
+The `oc` command is already installed on your VM's terminal.
 
 Open a terminal window from the VM and clone the lab to your local directory via:
+
+![terminal](images/checkenv1.png)
 
 ```
 git clone https://github.com/IBM/openshift-workshop-was.git
@@ -704,7 +707,7 @@ nodes                                 no                                        
     ```
 
 1. List the details for one of the pods: `oc get pods <pod name> -o yaml`
-
+    > Note: `<pod name>` is listed under `NAME` in the previous command's output.
     ```
     apiVersion: v1
     kind: Pod
@@ -832,7 +835,7 @@ nodes                                 no                                        
    ```
    cat Service.yaml
    ```
-   
+   Example output:
     ```
     apiVersion: v1
     kind: Service
@@ -856,7 +859,10 @@ nodes                                 no                                        
     ```
 
 1. Examine Route.yaml:
-
+    ```
+    cat Route.yaml
+    ```
+    Output:
     ```
     apiVersion: route.openshift.io/v1
     kind: Route
@@ -881,7 +887,7 @@ nodes                                 no                                        
    ```
    echo http://$(oc get route example --template='{{ .spec.host }}')
    ```
-   * Output:
+   Output:
    ```
    http://example-project1.apps.demo.ibmdte.net
    ```
@@ -915,14 +921,14 @@ nodes                                 no                                        
 
 1. To reduce the number of pods, we can patch the resource in one of two ways:
    - Scripted patch using the `patch` option of the command line:
-    ```
-    oc patch deployment example -p '{ "spec": { "replicas": 1 } }'
-    ```
-   - Interactive patch using the `edit` option of he commandline through `vi` editor:
+      ```
+      oc patch deployment example -p '{ "spec": { "replicas": 1 } }'
+      ```
+   - Interactive patch using the `edit` option of the command line through `vi` editor:
       ```
       oc edit deployment example
       ```
-      and under the `spec` section (not under the `status` section), change `replicas: 2` to `replicas: 1`, and save the change (by `:wq`).
+      Under the `spec` section (not under the `status` section), change `replicas: 2` to `replicas: 1`, and save the change (by `:wq`).
 
       The output:
       ```
