@@ -67,11 +67,11 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![login](extras/images/analysis3.png)
 
-1. From the Red Hat OpenShift Container Platform console, go to the **Networking** tab and click on **Routes**. Ensure that you are in the **ta** project by using the project drop down and click on the Location URL next to **ta-ui-route**.
+1. From the Red Hat OpenShift Container Platform console, go to the **Networking** tab and click on **Routes**. Ensure that you are in the **ta** project by using the project drop down and click on the Location URL next to `ta-ui-route`.
 
     ![ta](extras/images/analysis4.png)
 
-1. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
+1. This will open the Transformation Advisor user interface. Click **Create new** under **Workspaces** to create a new workspace. 
 
     ![TA starting page](extras/images/ta-create-collection.png)
 
@@ -362,7 +362,7 @@ For this lab, instead of using a single server.xml, the configurations have been
 
    Example output:
    ```
-   NAME   IMAGE REPOSITORY                                            TAGS     UPDATED
+   NAME   IMAGE REPOSITORY                                                       TAGS     UPDATED
    cos    default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos   latest   2 minutes ago
    ```
 
