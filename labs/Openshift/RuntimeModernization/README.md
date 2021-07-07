@@ -26,6 +26,26 @@ The application will go through **analysis**, **build** and **deploy** phases.
 It is modernized to run on the Liberty runtime, and
 deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Platform (OCP).
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](extras/images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](extras/images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](extras/images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](extras/images/loginvm4.png)
 
 <a name="analysis"></a>
 ## Analysis (Hands-on)
@@ -476,32 +496,32 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
     ```
 
 1. Verify your pod from the project `apps` is ready:
-   - First confirm you're at the current project `apps`:
+   - First, confirm you're at the current project `apps`:
      ```
      oc project
      ```
      
-   - If it's not at the project `apps`, then swtich:
+   - If it's not at project `apps`, then switch:
      ```
      oc project apps
      ```
      
    - and then run the following command to view the pod status:
    
-   ```
-   oc get pod 
-   ```
+      ```
+      oc get pod 
+      ```
 
-   Example output of pod status:
-   ```
-   NAME                   READY   STATUS    RESTARTS   AGE
-   cos-596b4f849f-2fg4h   1/1     Running   0          18m
-   ```
-  - If the pod doesn't display the expected `Running` status (for example, after 5 minutes) (and possibly with ImagePull error), then delete the pod to get it restarted.
-    From the command line, run `oc delete pod <pod name>`  (where pod name is the string under NAME column from the output of `oc get pod`)
+      Example output of pod status:
+      ```
+      NAME                   READY   STATUS    RESTARTS   AGE
+      cos-596b4f849f-2fg4h   1/1     Running   0          18m
+      ```
+  - If the pod doesn't display the expected `Running` status (for example, after 5 minutes), then delete the pod to restart it.
+    From the command line, run `oc delete pod <pod name>`  (pod name is the string under NAME column from the output of `oc get pod`)
     
 
-### Access the application (Hands-on)
+## Access the application (Hands-on)
 
 1. Run the following command to get the URL of your application:
    ```
@@ -510,167 +530,179 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
 
    Example output:
    ```
-   http://cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/CustomerOrderServicesWeb
+   http://cos-apps.apps.demo.ibmdte.net/CustomerOrderServicesWeb
    ```
    
-1. Point a browser to your URL (returned from the above command). 
+1. Return to your Firefox browser window and go to the URL outputted by the previous command.
    - You'll be shown a login dialog.
    - Login with user `skywalker` and password `force`. (The user is pre-created/registered in the `basicRegistry` configured in Liberty.)
+      ![accessapplication1](extras/images/accessapplication1.png)
    - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
+      ![accessapplication2](extras/images/accessapplication2.png)
    - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - Add few items to the cart. 
+      ![accessapplication3](extras/images/accessapplication3.png)
+   - Add a few items to the cart. 
    - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+      ![accessapplication4](extras/images/accessapplication4.png)
    - Close the browser.
 
 
-### Review the application workload flow with Open Liberty Operator (Hands-on)
-1. Navigate from OpenShift Console to view the resources on the deployment:
-   - Resources in the project `openshift-operators`:
-   
-     - Operator's `deployment` details
-       - select `open-liberty-operator`
+## Review the application workload flow with Open Liberty Operator (Hands-on)
+1. Return to the OpenShift console through a Firefox window to view the resources on deployment.
+
+1. View the resources in the project `openshift-operators`:
+     - Select the `openshift-operators` project from the project drop down menu at the top of the page.
+     - View the operator's `deployment` details:
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `open-liberty-operator`
              
          ![olo deploy1](extras/images/olo_deploy1.jpg)
          
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
        
          ![olo deploy2](extras/images/olo_deploy2.jpg)
 
-     - Operator's `pod` details
-       - select `open-liberty-operator-`
+     - View the operator's `pod` details:
+       - Click on the **Pods** tab under **Workloads** from the left menu, and select the pod starting with `open-liberty-operator`
        
          ![olo pod1](extras/images/olo_pod1.jpg)
          
-       - select `Logs` to view the open-liberty-operator container log
+       - Navigate to the `Logs` tab to view the `open-liberty-operator` container log
        
          ![olo pod2](extras/images/olo_pod2.jpg)
          
-       - select `Terminal` to view the files in the container
+       - Navigate to the `Terminal` tab to view the files in the container
        
          ![olo pod3](extras/images/olo_pod3.jpg)   
      
-    - Resources in the project `apps`:
+  1. View the resources in the project `apps`:
     
-      - `Open Liberty Application` instance details:
-        - select `Open Liberty Operator`.  Note: The operator is installed at cluster level and is visible to all existing projects, but Open Liberty Application instance is created under the project `apps`.
+      - Select the `apps` project from the project drop down menu at the top of the page. 
+      - View `Open Liberty Application` instance details:
+        - Click on the **Installed Operators** tab under **Operators** from the left menu and select `Open Liberty Operator`.  
+          > Note: The operator is installed at cluster level and is visible to all existing projects, but Open Liberty Application instance is created under the project `apps`.
     
           ![olo op1](extras/images/olo-op1.jpg)
           
-        - select `Open Liberty Application` tab and select `cos` to view the deails of Open Liberty Application instance
+        - Navigate to the `Open Liberty Application` tab and select `cos` to view the details of the Open Liberty Application instance
      
           ![olo op2](extras/images/olo-op2.jpg)
         
-        - select `YAML` tab to view the content of yaml
+        - Navigate to the `YAML` tab to view the content of yaml
         
           ![ola instance](extras/images/ola-instance.jpg)
           
-        - select `Resources` tab to view the resources of Open Liberty Application instance
+        - Navigate to the `Resources` tab to view the resources of Open Liberty Application instance
          
           ![ola resources](extras/images/ola-resources.jpg)
 
-      - Application `deployment` details:
-        - select `cos`
+      - View application `deployment` details:
+        - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos`
         
           ![ola workload deploy1](extras/images/ola-workload-deploy1.jpg)
 
-        - select `YAML` tab to view the content of yaml.  Note the deployment is created through the controller of OpenLibertyApplication custom resource.
+        - Navigate to the `YAML` tab to view the content of yaml.     
+          >Note the deployment is created through the controller of the OpenLibertyApplication custom resource.
        
           ![ola workload deploy2](extras/images/ola-workload-deploy2.jpg)
          
-      - Application `pod` details:    
-        - select `cos-`
+      - View application `pod` details:    
+        - Click on the **Pods** tab under **Workloads** from the left menu and select the pod starting with `cos-`
        
           ![ola workload pod1](extras/images/ola-workload-pod1.jpg)  
        
-        - select `Logs` tab to view the liberty access log
+        - Navigate to the `Logs` tab to view the liberty access log
         
           ![ola workload pod2](extras/images/ola-workload-pod2.jpg)      
          
-        - Note: by default, the Open Liberty Application instance is configured with liberty access log:
+          > Note: by default, the Open Liberty Application instance is configured with liberty access log:
         
           ![ola workload pod3](extras/images/ola-workload-pod3.jpg)
           
           
-       - Application `service` details:
+       - View application `service` details:
        
-         - select `cos`
+         - Click on the **Services** tab under **Networking** from the left menu and select `cos`
        
            ![ola network service1](extras/images/ola-net-service1.jpg) 
          
-         - select `YAML` to view the content of yaml.  Note the service is created through the controller of OpenLibertyApplication custom resource.
+         - Navigate to the `YAML` tab to view the content of yaml.  
+            > Note the service is created through the controller of OpenLibertyApplication custom resource.
          
            ![ola network service2](extras/images/ola-net-service2.jpg)   
          
-       - Application `route` details:
-         - select `cos`
+       - View application `route` details:
+         - Click on the **Routes** tab under **Networking** from the left menu and select `cos`
        
            ![ola network route1](extras/images/ola-net-route1.jpg) 
          
-         - select `YAML` to view the content of yaml.  Note the route is created through the controller of OpenLibertyApplication custom resource.
+         - Navigate to the `YAML` tab to view the content of yaml.  
+            >Note the route is created through the controller of OpenLibertyApplication custom resource.
          
            ![ola network route2](extras/images/ola-net-route2.jpg)   
        
-       - Application `secret` details:
-         - first, re-visit the yaml of Open Liberty Application instance to view the secrets are configured:
+       - View application `secret` details:
+         - First, return to the YAML of the Open Liberty Application instance to view the configured secrets:
          
            ![ola workload secret1](extras/images/ola-workload-secret1.jpg) 
          
            ![ola workload secret2](extras/images/ola-workload-secret2.jpg) 
            
            ![ola workload secret3](extras/images/ola-workload-secret3.jpg) 
-           
-         - select the respective secret and view the details 
+
+         - Click on the **Secrets** tab under **Workloads** from the left menu and select the respective secrets and view the details 
         
            ![ola workload secret4](extras/images/ola-workload-secret4.jpg) 
           
            ![ola workload secret5](extras/images/ola-workload-secret5.jpg)
            
            
-    - Resources in the project `db`:
-     
-      - db `deployment` details:   
-        - select `cos-db-liberty`
+  1. View the resources in the project `db`:
+      - Select the `db` project from the project drop down menu.
+      - View db `deployment` details:   
+        - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos-db-liberty`
        
           ![ol-db deploy1](extras/images/oldb_deploy_1.jpg)
 
-        - select `YAML` tab to view the content of yaml
+        - Navigate to the `YAML` tab to view the content of yaml
        
           ![ol-db deploy2](extras/images/oldb_deploy_2.jpg)
         
-      - db `pod` details:
-        - select  `cos-db-liberty-`
+      - View db `pod` details:
+        - Click on the **Pods** tab under **Workloads** from the left menu and select the pod starting with `cos-db-liberty`
        
           ![ol-db pod1](extras/images/oldb_pod_1.jpg)
        
-        - select `Logs` tab to view the database logs
-        - select `Terminal` tab to view the files in the database container
+        - Navigate to the `Logs` tab to view the database logs
+        - Navigate to the `Terminal` tab to view the files in the database container
        
           ![ol-db pod2](extras/images/oldb_pod_2.jpg)
         
-      - db `service` details:
-        - select  `cos-db-liberty`
+      - View db `service` details:
+        - Click on the **Services** tab under **Networking** from the left menu and select  `cos-db-liberty`
        
           ![ol-db service1](extras/images/oldb_service_1.jpg)
 
           ![ol-db service2](extras/images/oldb_service_2.jpg)
 
-[comment]: <> (Optional: Delete a pod to see how quickly another one is created and becomes ready - compared to traditional WAS, it's much faster)
 
 ## Review Deployment
 
 1. Let's review the configuration files used for our deployment. 
-   - Our configuration files are structured for the -k, or `kustomize` option of Openshift CLI.
-   - Kustomize is a separate tool that has been integrated into Openshift CLI.
-   - It allows you to customize yaml without using variables.
-   - You can define a base directory, and one one more override directories to customize the base directory
+   - Our configuration files are structured for the `-k`, or `kustomize` option of Openshift CLI.
+   - Kustomize is a separate tool that has been integrated into Openshift CLI that allows you to customize yaml without using variables.
+   - You can define a base directory and  override directories to customize the base directory
 
-1. Change directory to /openshift-workshop-was/labs/Openshift/RuntimeModernization (if it's already changed) and list the files:
+1. Make sure you are in directory `/openshift-workshop-was/labs/Openshift/RuntimeModernization` or change directory with 
+   ```
+   cd openshift-workshop-was/labs/Openshift/RuntimeModernization
+   ```
+1. List the deploy files:
 
    ```
    ls deploy 
    ```
 
-   And the output shows that we have one base directory, and one override directory:
+   And the output shows that we have one base directory and one override directory:
    
    ```
    base  overlay-apps
@@ -693,15 +725,14 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
      cat deploy/base/kustomization.yaml
      ```
 
-     Output of yaml:
-     - This is a simple kustomization directory that lists just the yaml files to be deployed.
+     Content of yaml:
+     - This is a simple kustomization directory that just lists the yaml files to be deployed.
        ```
        resources:
        - olapp-cos.yaml
        ```
 
    - The file `olapp-cos.yaml` contains the custom resource definition to deploy the application and will be covered in detail later.
-   - It is placed in the base directory since it is common for all stages of the application, for example, dev, test, prod.
 
 1. Take a look at the files in the `overlay-apps` directory. 
 
@@ -733,13 +764,10 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
      ```
 
     Note that:
-    - The namespace is defined. This means that all resource that originate from this directory will be applied to the `apps` namespace.
+    - The namespace is defined. This means that all resources originating from this directory will be applied to the `apps` namespace.
     - Resources from the base directory will also be included.
     - You may define additional overlay directories for different environments, each with a different namespace. For example, overlay-test, overlay-prod.
     - The configurations in this directory contain the overrides specific to this environment. 
-    - It is possible to override configurations in the base directory. But that is beyond the scope of this lab.
-    - These configuration files are meant to be stored in source control so that you can version and re-apply them as needed. 
-      - This is the basic concept of `git-ops`. Full coverage of gitops is beyond the scope of this lab.
     - For a real environment, DO NOT store the secret yamls into source control. It is a security expsoure.  See extra credit section on how to secure your secrets.
 
    - To preview the resources that will be applied for a specific override directory, use the `kustomize` option of the Openshift command line. For example,
@@ -750,48 +778,87 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
      The output is the same as displayed in [Deploy](#deploy) (Hands-on) section.
      
      
-### Secrets
+## Secrets
 
 Specifying credentials and tokens in plain text is not secure. 
 `Secrets` are used to store sensitive information. 
-The stored data can be referenced by other resources. 
-Special care is taken by OpenShift when handling data from secrets. 
-For example, they will not be logged or shown anywhere. 
+The stored data can be referenced by other resources. OpenShift handles secrets with special care. For example, they will not be logged or shown anywhere. 
 
-There are two secrets, one for database credentials and another for Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
+There are two secrets - one for database credentials and one for Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
 
-The file `secret-db-creds.yaml` contains the credentials for database.  It is injected into the container as environment variable via the `secretRef` specification for the Open Liberty Operator in the section. 
+- The file `secret-db-creds.yaml` contains the credentials for the database.  It is injected into the container as an environment variable via the `secretRef` specification for the Open Liberty Operator.
 
-```
-cat deploy/overlay-apps/secret-db-creds.yaml
-```
+  View the content of `secret-db-creds.yaml` file:
+  ```
+  cat deploy/overlay-apps/secret-db-creds.yaml
+  ```
+  Example output:
+  ```
+  kind: Secret
+  apiVersion: v1
+  metadata:
+    name: db-creds
+  data:
+    DB_PASSWORD: ZGIyaW5zdDE=
+    DB_USER: ZGIyaW5zdDE=
+  type: Opaque
+  ```
 
-The file `secret-liberty-creds.yaml` contains the secret to access liberty server.
+- The file `secret-liberty-creds.yaml` contains the secret to access liberty server.
 
-```
-cat deploy/overlay-apps/secret-liberty-creds.yaml
-```
+  View the content of `secret-liberty-creds.yaml` file: 
+  ```
+  cat deploy/overlay-apps/secret-liberty-creds.yaml
+  ```
+  Example output:
+  ```
+  kind: Secret
+  apiVersion: v1
+  metadata:
+    name: liberty-creds
+  stringData:
+    username: admin
+    password: admin
+  type: Opaque
+  ```
 
-Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides in plain text using `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under `data` field. Click on the `YAML` tab of `liberty-creds` secret. The `data` field should contain the credentials in encoded form.
+Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides them in plain text using the `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under the `data` field. We can see this by viewing the YAML of the `liberty-creds` secret:
 
-As anyone can decode the credentials, administrators should ensure that only authenticated users have access to `Secrets` using Role-based access control (RBAC).
+- Return to the OpenShift console through a Firefox browser window.
+- Select the `apps` project from the project drop down menu.
+- Click on the **Secrets** tab under **Workloads** from the left menu and search for the `liberty-creds` secret.
 
+  ![secrets1](extras/images/secrets1.png)
 
-### Configmap
+- Navigate to the `YAML` tab. Note that the `data` field contains the credentials in encoded form.
 
-Configmaps allows you to store name/value pairs that can be inject into your container when it starts.
+  ![secrets2](extras/images/secrets2.png)
+
+## Configmap
+
+Configmaps allows you to store name/value pairs that can be injected into your container when it starts.
 For our example, the values of the `configmap.yaml` are injected as environment variables  in the `configMapRef` specification on the _Open Liberty Operator_ in the next section.
 
 ```
 cat deploy/overlay-apps/configmap.yaml
 ```
+Example output:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cos-config
+data:
+  SEC_TLS_TRUSTDEFAULTCERTS: "true"
+  DB_HOST : "cos-db-liberty.db.svc"
+```
 
-### Open Liberty Operator
+## Open Liberty Operator
 
 We could have created Deployment, Service, and Route resources to deploy the Liberty image. 
 However, for this lab we will use the Open Liberty Operator instead. 
-Open Liberty Operator provides all functionalities of Runtime Component Operator used when deploying traditional WebSphere images in a previous lab. 
+The Open Liberty Operator provides all functionalities of Runtime Component Operator used when deploying traditional WebSphere images in a previous lab. 
 In addition, it also offers Open Liberty specific capabilities, such as day-2 operations (gather trace & dumps) and single sign-on (SSO).
 
 The file `deploy/base/olapp-cos.yaml` looks like:
@@ -847,25 +914,23 @@ spec:
       app-monitoring: 'true'
 ```
 
-- The `OpenLibertyApplication` is a custom resource supported by the Open Liberty Operator, which is deisgned to help you with Liberty deployment. It allows you to provide Liberty specific configurations (day-2 operations, single sign-on).
+- The `OpenLibertyApplication` is a custom resource supported by the Open Liberty Operator, which is designed to help you with Liberty deployment. It allows you to provide Liberty specific configurations (day-2 operations, single sign-on).
 
-- The application image you pushed earlier to internal image registry is specified for `applicationImage` parameter.
+- The application image you pushed earlier to internal image registry is specified by the `applicationImage` parameter.
 
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 
-- Secured service and route are configured with necessary certificates.
-
-- The `configMapRef` surfaces all entries of the  ConfigMap `cos-config`  as environment variables. These contain database host and other settings.
+- The `configMapRef` surfaces all entries of the  ConfigMap `cos-config`  as environment variables.
 
 - The `secretRef` surfaces the entries in the Secret `db-creds` as environment variables. These are the database user and password.
 
 - Enabled application monitoring so that Prometheus can scrape the information provided by MicroProfile Metric's `/metrics` endpoint in Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
-## Cleanup (Hands-on) (Skip this step if you're going to run the next lab ![Application Management](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/ApplicationManagement) on the same assigned cluster)
+## Cleanup (Hands-on) (Skip this step if you're going to run the next lab [Application Management](https://github.com/IBM/openshift-workshop-was/tree/operational/labs/Openshift/ApplicationManagement) on the same assigned cluster)
 
-1. The controller for the Open Liberty Operator creates the necessary Deployment, Service, and Route objects for Customer Order Services application. To list these resources, run the commands:
+1. The controller for the Open Liberty Operator creates the necessary Deployment, Service, and Route objects for the Customer Order Services application. To list these resources, run the commands:
 
-   - Reminder: Run `oc project` to confirm you're at the `apps` project before running the following commands.
+   > Reminder: Run `oc project` to confirm you're at the `apps` project before running the following commands.
    
    ```
    oc get deployment
@@ -884,13 +949,13 @@ spec:
    cos    ClusterIP   172.21.202.9   <none>        9443/TCP   2d18h
 
    # oc get route
-   NAME   HOST/PORT                                                                                        PATH   SERVICES   PORT       TERMINATION          WILDCARD
-   cos    cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud          cos        9443-tcp   reencrypt/Redirect   None
+   NAME   HOST/PORT                        PATH   SERVICES   PORT       TERMINATION          WILDCARD
+   cos    cos-apps.apps.demo.ibmdte.net           cos        9443-tcp   reencrypt/Redirect   None
    ```
 
-1. To remove these resources, run the command (Reminder: change directory to `openshift-workshop-was/labs/Openshift/RuntimeModernization` if it's not already at the current path.)
+1. To remove these resources, run the command (Ensure you are in directory `openshift-workshop-was/labs/Openshift/RuntimeModernization`)
    
-   - Note: The pre-installed resources such as Open Liberty Operator and DB2, are not removed.
+   > Note: The pre-installed resources such as Open Liberty Operator and DB2, are not removed.
    
    ```
    oc delete -k deploy/overlay-apps
