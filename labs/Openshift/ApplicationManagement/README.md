@@ -91,7 +91,6 @@ In this lab, you'll learn about managing your running applications efficiently u
    docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos .
    docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
    docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
-   sed -i "s/ENTER_YOUR_ROUTER_HOSTNAME_HERE/$(oc get route keycloak -n keycloak  --template='{{ .spec.host }}')/" deploy/overlay-apps/configmap.yaml
    oc apply -k deploy/overlay-apps
    ```
 
