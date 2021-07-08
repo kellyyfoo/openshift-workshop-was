@@ -26,7 +26,6 @@ In this lab, you'll learn about managing your running applications efficiently u
 
 
 ### Build and deploy the traditional WebSphere application (Hands-on)
-
 1. Change to the lab's directory:
    ```
    If you're at the previous location openshift-workshop-was/labs/Openshift/RuntimeModernization, then
@@ -68,7 +67,7 @@ In this lab, you'll learn about managing your running applications efficiently u
 
 ### Build and deploy the Liberty application (Skip this step if you just finished the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization) and did not clean up the deployment)
 
-1. Note: The following steps are to help you re-deploy the Liberty application if the deployment has been deleted from the previous lab Runtime Modernization.  The deployment is required to generate data for the follow-on steps in monitoring.
+1. Note: The following steps are to help you re-deploy the Liberty application if the deployment has been deleted from the previous lab Runtime Modernization.  The deployment is required to generate data for the follow-on steps in monitoring. 
 
 1. From the top level directory, change to the lab's directory to `RuntimeModernization` folder:
    ```
@@ -118,7 +117,9 @@ In this lab, you'll learn about managing your running applications efficiently u
   
 ## Application Logging (Hands-on)
 
-Pod processes running in OpenShift frequently produce logs. To effectively manage this log data and ensure no loss of log data occurs when a pod terminates, a log aggregation tool should be deployed on the cluster. Log aggregation tools help users persist, search, and visualize the log data that is gathered from the pods across the cluster. Let's look at application logging with log aggregation using EFK (Elasticsearch, Fluentd, and Kibana). Elasticsearch is a search and analytics engine. Fluentd receives, cleans and parses the log data. Kibana lets users visualize data with charts and graphs in Elasticsearch.
+Pod processes running in OpenShift frequently produce logs. To effectively manage this log data and ensure no loss of log data occurs when a pod terminates, a log aggregation tool should be deployed on the cluster. Log aggregation tools help users persist, search, and visualize the log data that is gathered from the pods across the cluster. Let's look at application logging with log aggregation using EFK (Elasticsearch, Fluentd, and Kibana). Elasticsearch is a search and analytics engine. Fluentd receives, cleans and parses the log data. Kibana lets users visualize data stored in Elasticsearch with charts and graphs.
+
+If it has been a long time (more than 15 minutes) since the Liberty or WebSphere pods last started, you may want to delete each pod and let a new one start, to ensure that Liberty and WebSphere create some recent logs for Kibana to find.
 
 ### Launch Kibana (Hands-on)
 
@@ -130,28 +131,33 @@ Pod processes running in OpenShift frequently produce logs. To effectively manag
 
 1. Click on `Log in with OpenShift`. Click on `Allow selected permissions`.
 
-1. The following steps are illustrated  in the screen recording at the end of this section. In Kibana console, from the left-panel, click on `Management`.
+1. In Kibana console, you'll be prompted to create an index pattern. An index pattern tells Kibana what indices to look for in Elasticsearch. Type `app` so that the index pattern looks like this screenshot:
 
-1. Click on `Index Patterns`. Click on `project.*`. 
-    - This index contains only a set of default fields and does not include all of the fields from the deployed application’s JSON log object. Therefore, the index needs to be refreshed to have all the fields from the application’s log object available to Kibana. 
+    ![index pattern app](extras/images/create-index-pattern.png)
 
-1. Click on the refresh icon and then click on `Refresh fields`.
+    You should see that your pattern matches at least one index. Then click **Next step**.
 
-    ![refresh index patterns](extras/images/refresh-index-patterns.gif)
+1. Click the drop-down for **Time Filter field name** and choose **@timestamp**. Then click **Create index pattern**.
+
+    ![index pattern time filter](extras/images/create-index-pattern-time.png)
+
+1. You should see a number of fields populated, around 260. To check that the correct fields have been detected, type `ibm` in the **Filter** text box. You should see many fields beginning with the text `ibm`. If not, try clicking the refresh button (arrows in a circle) in the top right of the page.
+
+    ![ibm index patterns](extras/images/ibm-index-patterns.png)
 
 ### Import dashboards (Hands-on)
 
-The following steps to import dashboards into Kibana are illustrated  in the screen recording at the end of this section:
+1. Download [this zip file](dashboards/dashboards.zip) containing dashboards to your computer and unzip to a local directory. (Look for the `download` button on the page.)
 
-1. Download [zip file](dashboards/dashboards.zip) containing dashboards to your computer and unzip to a local directory. (Look for the `download` button on the page.)
+1. Let's import dashboards for Liberty and WAS. From the left-panel, click on `Management`. Click on `Saved Objects` tab and then click on `Import`, then `Import` at the top of the panel that appears.
 
-1. Let's import dashboards for Liberty and WAS. From the left-panel, click on `Management`. Click on `Saved Objects` tab and then click on `Import`.
+    ![import saved objects](extras/images/import-saved-objects.png)
 
-1. Navigate to the _kibana_ sub-directory and select `ibm-open-liberty-kibana5-problems-dashboard.json` file. When prompted, click `Yes, overwrite all` option. It'll take few seconds for the dashboard to show up on the list.
+1. Navigate to the _kibana_ sub-directory and select `ibm-open-liberty-kibana5-problems-dashboard.json` file. Then click the `Import` button at the bottom of the panel. When prompted to resolve pattern conflicts, click select `app*` as the new index and click `Confirm all changes`. It'll take few seconds for the dashboard to import. Click `Done` when it finishes.
+
+    ![select index pattern](extras/images/select-index-pattern.png)
 
 1. Repeat the steps to import `ibm-open-liberty-kibana5-traffic-dashboard.json` and `ibm-websphere-traditional-kibana5-dashboard.json`.
-
-    ![import Kibana dashboards](extras/images/import-kibana-dashboards.gif)
 
 ### Explore dashboards (Hands-on)
 
@@ -159,15 +165,15 @@ In Kibana console, from the left-panel, click on `Dashboard`. You'll see 3 dashb
 
 #### Liberty applications (Hands-on)
 
-The following steps to visualize problems with applications are illustrated  in the screen recording below:
-
 1. Click on _Liberty-Problems-K5-20191122_. This dashboard visualizes message, trace and FFDC information from Liberty applications.
+
+    ![Liberty Problems Dashboard](extras/images/dashboard-liberty-problems.png)
 
 1. By default, data from the last 15 minutes are rendered. Adjust the time-range (from the top-right corner), so that it includes data from when you tried the Open Liberty application.
 
 1. Once the data is rendered, you'll see some information about the namespace, pod, containers where events/problems occurred along with a count for each. 
 
-1. Scroll down to `Liberty Potential Problem Count` section which lists the number of ERROR, FATA, SystemErr and WARNING events. You'll likely see some WARNING events.
+1. Scroll down to `Liberty Potential Problem Count` section which lists the number of ERROR, FATAL, SystemErr and WARNING events. You'll likely see some WARNING events.
 
 1. Below that you'll see `Liberty Top Message IDs`. This helps to quickly identify most occurring events and their timeline.
 
@@ -175,9 +181,9 @@ The following steps to visualize problems with applications are illustrated  in 
 
 1. Scroll-down to the actual warning messages. In this case some files from dojo were not found. Even though they are warnings, it'll be good to fix them by updating the application (we won't do that as part of this workshop).
 
-    ![Liberty problems dashboard](extras/images/liberty-problems-dashboard.gif)
+1. Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
 
-1. The following steps to visualize traffic to applications are illustrated  in the screen recording at the end of this section: Go back to the list of dashboards and click on _Liberty-Traffic-K5-20191122_. This dashboard helps to identify failing or slow HTTP requests on Liberty applications.
+    ![Liberty Traffic Dashboard](extras/images/dashboard-liberty-traffic.png)
 
 1. As before, adjust the time-range as necessary if no data is rendered.
 
@@ -192,11 +198,11 @@ The following steps to visualize problems with applications are illustrated  in 
 
 1. Scroll-up and click on the number listed below 400s. Dashboard will change other panels to show just the traffic with response code in 400s. You can see the timeline and the actual messages below. These are related to warnings from last dashboard about dojo files not being found (response code 404).
 
-    ![Liberty traffic dashboard](extras/images/liberty-traffic-dashboard.gif)
-
 #### Traditional WebSphere applications (Hands-on)
 
 1. Go back to the list of dashboards and click on _WAS-traditional-Problems-K5-20190609_. Similar to the first dashboard for Liberty, this dashboard visualizes message and trace information for WebSphere Application Server traditional.
+
+    ![WebSphere Problems Dashboard](extras/images/dashboard-websphere-problems.png)
 
 1. As before, adjust the time-range as necessary if no data is rendered.
 
