@@ -50,7 +50,7 @@ deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Pl
 <a name="analysis"></a>
 ## Analysis (Hands-on)
 
-A general overview on the IBM Cloud Transformation Advisor was given in the previous lab [Operational Modernization](../OperationalModernization). In this lab, we will demonstrate how the Transformation Advisor can be used specifically in the runtime modernization process.
+In this lab, we will demonstrate how the Transformation Advisor can be used specifically in the runtime modernization process.
 
 The steps needed to analyze the existing Customer Order Services application are:
 
