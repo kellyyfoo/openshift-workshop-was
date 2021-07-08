@@ -64,7 +64,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![ta](extras/images/analysis4.png)
 
-1. In the Transformation Advisor user interface, click **Create new** under **Workspaces** to create a new workspace. 
+1. This will open the Transformation Advisor user interface. Click **Create new** under **Workspaces** to create a new workspace. 
 
     ![TA starting page](extras/images/ta-create-collection.png)
 
@@ -72,11 +72,11 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![Choose workspace name](extras/images/ta-name-workspace.png)
     
-    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application; name it **CustomerOrderServices**. Click **Create**. 
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application. Name it **CustomerOrderServices**. Click **Create**. 
     
     ![Choose collection name](extras/images/ta-name-collection.png)
 
-1. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
+1. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
 
     ![TA no recommendations available screen](extras/images/ta-upload.png)
     
@@ -255,7 +255,7 @@ Building this image could take around ~8 minutes. So, let's kick that process of
       latest: digest: sha256:4f4e8ae82fa22c83febc4f884b5026d01815fc704df6196431db8ed7a7def6a0 size: 3672
      ```
 
-1. Verify that the image is in the image registry. The following command will get the images in the registry. Filter through the results to only get the image you pushed. Run the following command:
+1. Verify that the image is in the image registry. The following command will get the images in the registry. Filter through the results to get only the image you pushed. Run the following command:
 
    ```
    oc get images | grep apps-was/cos-was
@@ -268,7 +268,7 @@ Building this image could take around ~8 minutes. So, let's kick that process of
      image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:bc072d3b78ae6adcd843af75552965e5ed863bcce4fc3f1bc5d194570bc16953
      ```
 
-1. OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one already doesn't exist. Run the following command to see the _ImageStream_ that's created:
+1. OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one doesn't already exist. Run the following command to see the _ImageStream_ that's created:
   
    ```
    oc get imagestreams -n apps-was
@@ -373,7 +373,7 @@ Since migrating the database is not the focus of this particular workshop and to
      - Note:
        - The liveness probe is used to tell Kubernetes when the application is live. Due to the size of the traditional WAS image, the initialDelaySeconds attribute has been set to 90 seconds to give the container time to start.
        - The readiness probe is used to tell Kubernetes whether the application is ready to serve requests. 
-       - You may store property file based configuration files as configmaps and secrets, and bind their contents into the `/etc/websphere` directory. 
+       - You may store property file based configuration files such as configmaps and secrets, and bind their contents into the `/etc/websphere` directory. 
        - When the container starts, the server startup script will apply all the property files found in the `/etc/websphere` directory to reconfigure the server.
        - For our example, the `volumeMounts` and `volumes` are used to bind the contents of the secret `authdata` into the directory `/etc/websphere` during container startup. 
        - After it is bound, it will appear as the file `/etc/websphere/authdata.properties`. 
@@ -433,7 +433,7 @@ Since migrating the database is not the focus of this particular workshop and to
      ```
 
      - The attribute `authdata.properties` contains the properties file based configure used to update the database userId and password for the JAASAuthData whose alias is DBUser. 
-     - The configuration in Deployment.yaml maps it as the file `/etc/websphere/authdata.properties` during container startup so that the application server startup script can automatically configures the server with these entries. 
+     - The configuration in Deployment.yaml maps it as the file `/etc/websphere/authdata.properties` during container startup so that the application server startup script can automatically configure the server with these entries. 
 
 
 <a name="access-the-application"></a>
@@ -448,7 +448,7 @@ Since migrating the database is not the focus of this particular workshop and to
    ```
    Using project "apps-was" on server "https://c114-e.us-south.containers.cloud.ibm.com:30016".
    ```
-   - If it's not at the project `apps-was`, then swtich:
+   - If it's not at the project `apps-was`, then switch:
      ```
      oc project apps-was
      ```
@@ -588,8 +588,8 @@ Since migrating the database is not the focus of this particular workshop and to
 
 ## Remove your deployment (standard deployment without operator) (Hands-on)
 
-To remove the deploment from the above scenario without operator, run the command:
-- Note: The pre-installed resources such as DB2, are not removed.
+To remove the deploment from the above scenario without the operator, run the command:
+> Note: The pre-installed resources such as DB2, are not removed.
 
 ```
 oc delete -f deploy
@@ -638,7 +638,7 @@ Another way to deploy the application is via the Runtime Component Operator. It 
      cat deploy-rco/Secret.yaml
      ```
 
-     - Note that it is the same as the Secret.yaml in the `deploy` directory, except the name has been changed to `authdata-rco`.  
+     - Note that it is the same as the `Secret.yaml` in the `deploy` directory, except the name has been changed to `authdata-rco`.  
      - It serves the same purpose for this new deployment - to override the database user/password.
 
 
@@ -709,7 +709,7 @@ Another way to deploy the application is via the Runtime Component Operator. It 
    ```
    Using project "apps-was" on server "https://c114-e.us-south.containers.cloud.ibm.com:30016".
    ```
-   - If it's not at the project `apps-was`, then swtich:
+   - If it's not at the project `apps-was`, then switch:
      ```
      oc project apps-was
      ```
