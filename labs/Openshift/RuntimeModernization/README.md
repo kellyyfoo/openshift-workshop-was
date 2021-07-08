@@ -17,12 +17,12 @@
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast start-up times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
-**This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
+**This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application were modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
 
 This lab demonstrates **runtime modernization**.
 It uses the **Customer Order Services** application, which originates from WebSphere ND V8.5.5. 
-Click [here](extras/application.md) and get to know the application, its architecture and components.
-The application will go through **analysis**, **build** and **deploy** phases. 
+Click [here](extras/application.md) to get to know the application, including its architecture and components.
+The application will go through the **analysis**, **build** and **deploy** phases. 
 It is modernized to run on the Liberty runtime, and
 deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Platform (OCP).
 
@@ -79,7 +79,7 @@ The steps needed to analyze the existing Customer Order Services application are
 
     ![Choose workspace name](extras/images/ta-name-workspace.png)
     
-    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application; name it **CustomerOrderServices**. Click **Create**. 
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application. Name it **CustomerOrderServices**. Click **Create**. 
     
     ![Choose collection name](extras/images/ta-name-collection.png)
 
@@ -160,7 +160,7 @@ Eclipse MicroProfile is a modular set of technologies designed so that you can w
 
 ### Determine application's availability (for reading only)
 
-In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that an application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
+In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that an application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if the application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests would fail or queue up, leading to bigger problems.
 
 MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically, and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
 
@@ -219,7 +219,7 @@ For this lab, instead of using a single server.xml, the configurations have been
    Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos:latest
    ```
 
-1. Validate that image is in the repository via the command line:
+1. Validate that the image is in the repository via the command line:
 
    ```
    docker images
@@ -354,7 +354,7 @@ For this lab, instead of using a single server.xml, the configurations have been
      sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   image-registry.openshift-image-registry.svc:5000/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
      ```
 
-1. Verify the image stream is created via the command line:
+1. Verify that the image stream is created via the command line:
 
    ```
    oc get imagestreams
@@ -495,7 +495,7 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
     cos    cos-apps.apps.demo.ibmdte.net          cos        9443-tcp   reencrypt/Redirect   None
     ```
 
-1. Verify your pod from the project `apps` is ready:
+1. Verify that your pod from the project `apps` is ready:
    - First, confirm you're at the current project `apps`:
      ```
      oc project
@@ -536,14 +536,22 @@ Customer Order Services application uses DB2 as its database. To deploy it to Li
 1. Return to your Firefox browser window and go to the URL outputted by the previous command.
    - You'll be shown a login dialog.
    - Login with user `skywalker` and password `force`. (The user is pre-created/registered in the `basicRegistry` configured in Liberty.)
+
       ![accessapplication1](extras/images/accessapplication1.png)
+
    - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
+
       ![accessapplication2](extras/images/accessapplication2.png)
+
    - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
+
       ![accessapplication3](extras/images/accessapplication3.png)
+
    - Add a few items to the cart. 
    - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
       ![accessapplication4](extras/images/accessapplication4.png)
+      
    - Close the browser.
 
 
