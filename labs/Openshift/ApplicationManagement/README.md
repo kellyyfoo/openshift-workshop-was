@@ -13,29 +13,54 @@
 
 In this lab, you'll learn about managing your running applications efficiently using various tools available to you as part of OpenShift and OperatorHub, including the Open Liberty Operator.
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](extras/images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](extras/images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](extras/images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](extras/images/loginvm4.png)
+
 ## Prerequisites
 
-1. Open a terminal to access the command line interface. If you were using the web terminal and it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal. Otherwise, start the terminal available in your environment.
+1. Open a terminal window from the VM desktop.
 
-1. If you have not logged in to OpenShift CLI or if your previous `oc login` session is no longer available (due to OpenShift CLI login token expired, or terminal session is reopened), then follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issuing `oc login` command from the terminal.
+    ![terminal window](extras/images/build1.png)
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts (which is the same as used in the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization)), then run the following command on your terminal:
+1. Login to OpenShift CLI with the `oc login` command from the web terminal. When prompted for the username and password, enter the following login credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+    
+      ![oc login](extras/images/build2.png)
+
+1. If you have not yet cloned the GitHub repo with the lab artifacts, then run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
 
 
-### Build and deploy the traditional WebSphere application (Hands-on)
+## Build and deploy the traditional WebSphere application (Hands-on)
+
 1. Change to the lab's directory:
    ```
-   If you're at the previous location openshift-workshop-was/labs/Openshift/RuntimeModernization, then
-   cd ../OperationalModernization
-   
-   otherwise, using the full path to OperationalModernization folder:
    cd openshift-workshop-was/labs/Openshift/OperationalModernization
    ```
 
-1. Create and switch over to the project `apps-was`. Note: The first step `oc new-project` may fail if the project already exists; proceed to next command.
+1. Create and switch over to the project `apps-was`. 
+    > Note: The first step `oc new-project` may fail if the project already exists. If so, proceed to the next command.
    ```
    oc new-project apps-was
    oc project apps-was
@@ -48,37 +73,60 @@ In this lab, you'll learn about managing your running applications efficiently u
     docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
     oc apply -f deploy
     ```
+    Example output: 
+    ```
+    deployment.apps/cos-was created
+    route.route.openshift.io/cos-was created
+    secret/authdata created
+    service/cos-was created
+    ```
 
 1. Wait for the pod to be available, check status via `oc get pod`
+    
+    The output should be: 
+    ```
+    NAME                      READY   STATUS    RESTARTS   AGE
+    cos-was-7d5ff6945-4hjzr   1/1     Running   0          88s
+    ```
 
 1. Get the URL to the application:
    ```
    echo http://$(oc get route cos-was  --template='{{ .spec.host }}')/CustomerOrderServicesWeb
    ```
-
-1. Point your browser to the output of the above command. 
-   - Login as user `skywalker` and password `force`.  (The file-based user is stored in fileregistry.xml of traditional WebSphere container.)
-   - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
-   - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - Add few items to the cart. 
-   - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
-   - Close the browser.
-
-
-### Build and deploy the Liberty application (Skip this step if you just finished the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization) and did not clean up the deployment)
-
-1. Note: The following steps are to help you re-deploy the Liberty application if the deployment has been deleted from the previous lab Runtime Modernization.  The deployment is required to generate data for the follow-on steps in monitoring. 
-
-1. From the top level directory, change to the lab's directory to `RuntimeModernization` folder:
+   Example output:
    ```
-   If you're at the previous location openshift-workshop-was/labs/Openshift/OperationalModernization, then
-   cd ../RuntimeModernization
-   
-   otherwise, using the full path to RuntimeModernization folder:
+   http://cos-was-apps-was.apps.demo.ibmdte.net/CustomerOrderServicesWeb
+   ```
+1. Return to your Firefox browser window, and go to the URL outputted by the command run in the previous step.
+
+1. You will be prompted to login in order to access the application. Enter the following credentials:
+    - Username: **skywalker**
+    - Password: **force**
+
+    ![accessapplication1](extras/images/accessapplication1.png)
+
+1. After login, the application page titled _Electronic and Movie Depot_ will be displayed. From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
+
+    ![accessapplication2](extras/images/accessapplication2.png)
+
+1. Add a few items to the cart. As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
+    ![accessapplication3](extras/images/accessapplication3.png)
+
+1. Close the browser.
+
+## Build and deploy the Liberty application 
+(Skip this step if you just finished the previous lab [Runtime Modernization](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/RuntimeModernization) and did not clean up the deployment)
+
+> Note: The following steps are to help you re-deploy the Liberty application if the deployment has been deleted from the previous lab Runtime Modernization.  The deployment is required to generate data for the follow-on steps in monitoring.
+
+1. From the top level directory, change to the lab's directory `RuntimeModernization` folder:
+   ```
    cd openshift-workshop-was/labs/Openshift/RuntimeModernization
    ```
 
-1. Create and switch over to the project `apps`. Also enable monitoring for the project. Note: The first step `oc new-project` may fail if the project already exists; proceed to next command.
+1. Create and switch over to the project `apps`. Also, enable monitoring for the project. 
+    > Note: The first step `oc new-project` may fail if the project already exists. If so, proceed to the next command.
    ```
    oc new-project apps
    oc project apps
@@ -92,28 +140,58 @@ In this lab, you'll learn about managing your running applications efficiently u
    docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
    oc apply -k deploy/overlay-apps
    ```
+   Example output:
+   ```
+   configmap/cos-config created
+   secret/db-creds created
+   secret/liberty-creds created
+   openlibertyapplication.openliberty.io/cos created
+   ```
 
 1. Verify the route for the application is created:
    ```
    oc get route cos
+   ```
+   Example output:
+   ```
+   NAME   HOST/PORT                       PATH   SERVICES   PORT       TERMINATION          WILDCARD
+   cos    cos-apps.apps.demo.ibmdte.net          cos        9443-tcp   reencrypt/Redirect   None
    ```
 
 1. Verify your pod is ready:
    ```
    oc get pod 
    ```
+   Example output:
+   ```
+   NAME                   READY   STATUS    RESTARTS   AGE
+   cos-54975b94c6-rh6kt   1/1     Running   0          3m11s
+   ```
 
 1. Get the application URL:
    ```
    echo http://$(oc get route cos  --template='{{ .spec.host }}')/CustomerOrderServicesWeb
    ```
+   Example output:
+   ```
+   http://cos-apps.apps.demo.ibmdte.net/CustomerOrderServicesWeb
+   ```
 
-1. Point your browser to the above URL. 
-   - Login with user `skywalker` and password `force`. (The user is pre-created in Liberty's built-in user registry.)
-   - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
-   - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - **Add multiple items to the shopping cart to trigger more logging.**
-   - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+1. Return to your Firefox browser window and go to the URL outputted by the command run in the previous step.
+
+1. You will be prompted to login in order to access the application. Enter the following credentials:
+    - Username: **skywalker**
+    - Password: **force**
+
+    ![accessapplication1](extras/images/accessapplication1.png)
+
+1. After login, the application page titled _Electronic and Movie Depot_ will be displayed. From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. **Add multiple items to the shopping cart to trigger more logging.**
+
+    ![accessapplication2](extras/images/accessapplication2.png)
+
+1. Add a few items to the cart. As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
+    ![accessapplication3](extras/images/accessapplication3.png)
   
 ## Application Logging (Hands-on)
 
