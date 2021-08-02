@@ -3,4 +3,4 @@ kind: OpenLibertyApplication
 metadata:
   name: cos
 spec: 
-  applicationImage: 'image-registry.openshift-image-registry.svc:5000/staging/cos:v2.0'
+  applicationImage: 'image-registry.openshift-image-registry.svc:5000/staging/cos:latest'
