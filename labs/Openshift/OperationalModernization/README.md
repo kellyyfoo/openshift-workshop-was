@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading)
+- [Analysis](#analysis) (Hands-on)
 - [Build](#build) (Hands-on)
 - [Deploy without operator](#deploy) (Hands-on)
 - [Access the Application without operator](#access-the-application) (Hands-on)
@@ -17,33 +17,104 @@
 **Operational modernization** gives an operations team the opportunity to embrace modern operations best practices without putting change requirements on the development team. 
 Modernizing from WebSphere Network Deployment (ND) to the **traditional WebSphere Application Server Base V9 runtime** in a container allows the application to be moved to the cloud without code changes.
 
-The scaling, routing, clustering, high availability and continuous availability functionality that WebSphere ND previously provided will be handled by containers orchestrator Red Hat OpenShift and allows the operations team to run cloud-native and older applications in the same environment with the same standardized logging, monitoring and security frameworks.
-
-While traditional WebSphere isn't a 'built for the cloud' runtime like Liberty, it can still be run in container and will receive the benefits of the consistency and reliability of containers as well as helping to improve DevOps and speed to market.
-
 **This type of modernization shouldn't require any code changes** and can be driven by the operations team. **This path gets the application in to a container with the least amount of effort but doesn't modernize the application or the runtime.**
-
-This repository holds a solution that is the result of an **operational modernization** for an existing WebSphere Java EE application that was moved from WebSphere ND v8.5.5 to the traditional WebSphere Base v9 container and is deployed by the IBM Cloud Pak for Applications to RedHat OpenShift.
 
 In this lab, we'll use **Customer Order Services** application as an example. In order to modernize, the application will go through **analysis**, **build** and **deploy** phases. Click [here](extras/application.md) and get to know the application, its architecture and components.
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](extras/images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](extras/images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](extras/images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](extras/images/loginvm4.png)
+
 <a name="analysis"></a>
-## Analysis (Background reading only)
+## Analysis (Hands-on)
+IBM Cloud Transformation Advisor can be used to analyze the Customer Order Service Application running in the WebSphere ND environment. The Transformation Advisor helps you to analyze your on-premises workloads for modernization. It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
 
-IBM Cloud Transformation Advisor was used to analyze the Customer Order Service Application running in the WebSphere ND environment. 
-The Transformation Advisor helps you to analyze your on-premises workloads for modernization. 
-It determines the complexity of your applications, estimates a development cost to perform the move to the cloud, and recommends the best target environment. 
-The stesp taken to analyze the existing Customer Order Services application were:
+The steps needed to analyze the existing Customer Order Services application are:
+1. Open a Firefox browser window from within the VM. 
+    ![firefox](extras/images/analysis1.png)
 
-1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used. 
+1. Click on the **openshift console** bookmark in the top left and log in with the **htpasswd** option.
 
-2. Downloaded and executed the **Data Collector** against the existing WebSphere ND runtime.
+    ![openshift console](extras/images/analysis2.png)
 
-3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
+1. Log in to the OpenShift account using the following credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
 
-    ![tWAS](extras/images/tWAS-analyze/analysis2.jpg)
+    ![login](extras/images/analysis3.png)
 
-4. Analyzed the **Detailed Migration Analysis Report**. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime, and the decision was to proceed with the operational modernization.
+1. From the Red Hat OpenShift Container Platform console, go to the **Networking** tab and click on **Routes**. Ensure that you are in the **ta** project by using the project drop down and click on the Location URL next to **ta-ui-route**.
+
+    ![ta](extras/images/analysis4.png)
+
+1. This will open the Transformation Advisor user interface. Click **Create new** under **Workspaces** to create a new workspace. 
+
+    ![TA starting page](extras/images/ta-create-collection.png)
+
+1. Name it **OperationalModernization** and click **Next**. 
+
+    ![Choose workspace name](extras/images/ta-name-workspace.png)
+    
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application. Name it **CustomerOrderServices**. Click **Create**. 
+    
+    ![Choose collection name](extras/images/ta-name-collection.png)
+
+1. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
+
+    ![TA no recommendations available screen](extras/images/ta-upload.png)
+    
+    Upload the results of the data collection (the [**datacollector.zip**](resources/datacollection.zip) file) to IBM Cloud Transformation Advisor.
+    
+    ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
+
+1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
+
+    ![TA recommendations screen for the data collection](extras/images/ta-migration-target.png)
+    
+    Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This will show you an entry for each application for each compatible destination runtime you can migrate it to.
+    
+    ![TA choosing compatible runtimes](extras/images/ta-compatible-runtimes.png)
+
+1. Click the **CustomerOrderServicesApp.ear** application with the **WebSphere traditional** migration target to open the **Application details page**. 
+
+    ![TA choosing CustomerOrderServices tWAS target](extras/images/ta-cos-twas.png)
+    
+1. Look over the migration analysis. You can view a summary of the complexity of migrating this application to this target, see detailed information about issues, and view additional reports about the application. In summary, no code changes are required to move this application to the traditional WebSphere Base v9 runtime, so it is a good candidate to proceed with the operational modernization.
+
+    ![TA detailed analysis for CustomerOrderServices](extras/images/ta-detailed-analysis.png)
+
+1. Click on **View migration plan** in the top right corner of the page. 
+    
+    ![TA migration plan button](extras/images/ta-migration-bundle-button.png)
+    
+    This page will help you assemble an archive containing:
+    - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
+    - any required drivers or libraries (you upload these here or specify Maven coordinates to download them)
+    - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
+    - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
+
+    ![TA migration plan page](extras/images/ta-migration-bundle.png)
+
+> NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
+
+For a more detailed walkthrough of the Transformation Advisor process, see [this document](extras/WAS-analyze.md). 
 
 
 <a name="build"></a>
@@ -51,13 +122,19 @@ The stesp taken to analyze the existing Customer Order Services application were
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on traditional WebSphere Base v9.
 
-Building this image could take around ~8 minutes (since the image is around 2GB and starting/stopping the WAS server as part of the build process takes few minutes). So, let's kick that process off and before explaining what you did. The image should be built by the time you complete this section.
+Building this image could take around ~8 minutes. So, let's kick that process off before explaining what you did. The image should be built by the time you complete this section.
 
-1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a new terminal window from the VM desktop.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issing `oc login` command from the web terminal.  Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
+    ![terminal window](extras/images/build1.png)
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your web terminal:
+1. Login to OpenShift CLI with the `oc login` command from the web terminal. When prompted for the username and password, enter the following login credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+    
+      ![oc login](extras/images/build2.png)
+
+1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
@@ -69,8 +146,6 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
     ```
 
 1. Run the following command to create a new project named `apps-was` in OpenShift. 
-   - A project allows a community of users to organize and manage their content in isolation from other communities.
-   - Reminder: Ensure you have run `oc login` command as directed in the step above before using OpenShift CLI.
    
      ```
      oc new-project apps-was
@@ -82,115 +157,34 @@ Building this image could take around ~8 minutes (since the image is around 2GB 
      . . .
      ```
      
-1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). This command will be explained later in the _Build image_ section. While the image is building continue with rest of the lab:
+1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (which indicates current directory). 
     ```
-    docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
+    docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
     ```
-
-### Managing Build artifacts
-
-As per container's best practices, you should always build immutable images. 
-You should create a new image which adds a single application and corresponding configuration. 
-You should avoid configuring the image manually (after it is built) via Admin Console or wsadmin (unless it is for debugging purposes) because such changes won't be present if you spawn a new container from the image. 
-
-There are two ways to modify the configuration of the traditional WebSphere image during the build:
-- via `wsadmin` scripting
-- via `properties file based configuration`.
-
-First review the wsadmin script, based on an existing Customer Order Services script running on-prem. 
-The contents of the script is found [here](config/cosConfig.py).
-This script enables application security, creates users and JDBC provider for a DB2 database. 
-It also enables JPA 2.0 and JAX-RS 1.1, which are not defaults on WebSphere 9.0.
-
-- `AdminTask.modifyJPASpecLevel(Server, '[ -specLevel 2.0]')`
-- `AdminTask.modifyJaxrsProvider(Server, '[ -provider 1.1]')`
-
-For `properties file based configuration`, review the properties file found [here](config/app-update.props).
-This properties file is used to install the application, which is an alternate way to install applications or apply configurations. 
-The application could also have been installed using the wsadmin scripting, but we chose to use the properties file to show the second methods of configurations.
-
-
-The first block of the properties file specifies Application resource type, followed by the property values, including the location of the ear file:
-
-```
-ResourceType=Application
-ImplementingResourceType=Application
-CreateDeleteCommandProperties=true
-ResourceId=Deployment=CustomerOrderServicesApp
-
-Name=CustomerOrderServicesApp
-TargetServer=!{serverName}
-TargetNode=!{nodeName}
-EarFileLocation=/work/apps/CustomerOrderServicesApp.ear
-```
-
-The values of the properties file variables are specified towards the end:
-
-```
-cellName=DefaultCell01
-nodeName=DefaultNode01
-serverName=server1
-```
-
-### Build instructions
-
-Let's review the contents of the Dockerfile:
-
-```dockerfile
-FROM ibmcom/websphere-traditional:9.0.5.0-ubi
-
-COPY --chown=1001:0 resources/db2/ /opt/IBM/db2drivers/
-
-COPY --chown=1001:0 config/PASSWORD /tmp/PASSWORD
-
-COPY --chown=1001:0 config/cosConfig.py /work/config/
-
-COPY --chown=1001:0 config/app-update.props  /work/config/
-
-COPY --chown=1001:0 app/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /work/apps/CustomerOrderServicesApp.ear
-
-RUN /work/configure.sh
-```
-
-- The base image for our application image is `ibmcom/websphere-traditional`, which is the official image for traditional WAS Base in container. The tag `9.0.5.0-ubi` indicates the version of WAS and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images.
-
-- We need to copy everything that the application needs into the container. So, we copy the db2 drivers which are referenced in the wsadmin jython script. 
-
-- For security, traditional WebSphere Base containers run as non-root. This is in fact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So, change user and group using `--chown=1001:0` command.
-
-- Specify a password for the wsadmin user at `/tmp/PASSWORD`. This is optional. A password will be automatically generated if one is not provided. This password can be used to login to Admin Console (should be for debugging purposes only).
-
-- We copy `cosConfig.py` jython script and the `app-update.props` file into `/work/config/` folder, so they are run automatically during image creation.
-
-- Then we copy application ear to the `EarFileLocation` referenced in `app-update.props`
-
-- Then we run the `/work/configure.sh` which will start the server and run the scripts and apply the properties file configuration to new image.
-
-- Each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
 
 ### Build image (Hands-on)
 
 1. Review the command you ran earlier:
 
    ```
-   docker build --tag image-registry.openshift-image-registry.svc:5000/apps-was/cos-was .
+   docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was .
    ```
 
    - It instructs docker to build the image following the instructions in the Dockerfile in current directory (indicated by the `"."` at the end).
-   - A specific name to tag the built image is also specified. 
-   - The value `image-registry.openshift-image-registry.svc:5000` in the tag is the default address of the internal image registry provided by OpenShift. 
+   - A specific name to tag the built image is also specified after `--tag`.
+   - The value `default-route-openshift-image-registry.apps.demo.ibmdte.net` in the tag is the default address of the internal image registry provided by OpenShift. 
    - Image registry is a content server that can store and serve container images. 
    - The registry is accessible within the cluster via its exposed `Service`. 
    - The format of a Service address: _name_._namespace_._svc_. 
    - In this case, the image registry is named `image-registry` and it's in namespace `openshift-image-registry`.
-   - The port is 5000.
    - Later when we push the image to OpenShift's internal image registry, we'll refer to the image by the same values.
 
 
 1. You should see the following message if the image was successfully built. Please wait if it's still building.
 
    ```
-   Successfully tagged image-registry.openshift-image-registry.svc:5000/apps-was/cos-was:latest
+   Successfully built aa6babbb5ce9
+   Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was:latest
    ```
 
 1. Validate that image is in the repository by running the command:
@@ -199,29 +193,27 @@ RUN /work/configure.sh
    docker images
    ```
 
-   - You should get an output similar to this. Notice that the base image, websphere-traditional, is also listed. It was pulled as the first step of building application image.
+   - Notice that the base image, websphere-traditional, is also listed. It was pulled as the first step of building application image.
      
      Example output:
      ```
      REPOSITORY                                                             TAG                 IMAGE ID            CREATED             SIZE
-     image-registry.openshift-image-registry.svc:5000/apps-was/cos-was      latest              9394150a5a15        10 minutes ago      2.05GB
-     ibmcom/websphere-traditional                                           9.0.5.0-ubi         898f9fd79b36        12 minutes ago      1.86GB
+     default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was      latest              9394150a5a15        10 minutes ago      2.05GB
+     ibmcom/websphere-traditional                                           latest              898f9fd79b36        12 minutes ago      1.86GB
      ```
 
    - Note that `docker images` only lists those images that are cached locally.
    - The name of the image also contains the host name where the image is hosted. 
-   - If there is no host name, the image is hosted on docker hub. For example:
-   - The image `ibmcom/websphere-traditional` has no host name. It is hosted on docker hub.
-   - The image we just built, `image-registry.openshift-image-registry.svc:5000/apps-was/cos-was`, has host name `image-registry.openshift-image-registry.svc`. It is to be hosted in the Openshift image registry for your lab cluster.
-   - If you change an image, or build a new image, the changes are only available locally. 
-   - You must `push` the image to propagate the changes to the remote registry.
+   - If there is no host name, the image is hosted on docker hub. For example, the image `ibmcom/websphere-traditional` has no host name. It is hosted on docker hub.
+   - The image we just built, `default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was`, has host name `default-route-openshift-image-registry.apps.demo.ibmdte.net`. It is to be hosted in the Openshift image registry for your lab cluster.
+   - If you change an image, or build a new image, the changes are only available locally. You must `push` the image to propagate the changes to the remote registry.
 
 1. Let's push the image you just built to your OpenShift cluster's built-in image registry. 
-   - First, login to the image registry by running the following command in the web terminal. 
-     - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
+   - First, login to the image registry by running the following command in the terminal. 
+     - Note: A session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
-     docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
+     docker login -u $(oc whoami) -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
      ```
 
      Example output:
@@ -237,10 +229,33 @@ RUN /work/configure.sh
    - Now, push the image into OpenShift cluster's internal image registry, which will take 1-2 minutes:
 
      ```
-     docker push image-registry.openshift-image-registry.svc:5000/apps-was/cos-was
+     docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was
      ```
 
-1. Verify that the image is in the image registry. The following command will get the images in the registry. OpenShift stores various images needed for its operations and used by its templates in the registry. Filter through the results to only get the image you pushed. Run the following command:
+     Example output: 
+     ```
+      Using default tag: latest
+      The push refers to repository [default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was]
+      470e7d3b0bec: Pushed 
+      c38e61da8211: Pushed 
+      2a72e88fe5eb: Pushed 
+      334c79ff1b2e: Pushed 
+      ccf8ea26529f: Pushed 
+      af0f17433f77: Pushed 
+      4254aef2aa12: Pushed 
+      855301ffdcce: Pushed 
+      ea252e2474a5: Pushed 
+      68a4c9686496: Pushed 
+      87ecb86bc8e5: Pushed 
+      066b59214d49: Pushed 
+      211f972e9c63: Pushed 
+      b93eee2b1ddb: Pushed 
+      a6ab5ae423d9: Pushed 
+      3f785cf0a0ae: Pushed 
+      latest: digest: sha256:4f4e8ae82fa22c83febc4f884b5026d01815fc704df6196431db8ed7a7def6a0 size: 3672
+     ```
+
+1. Verify that the image is in the image registry. The following command will get the images in the registry. Filter through the results to get only the image you pushed. Run the following command:
 
    ```
    oc get images | grep apps-was/cos-was
@@ -250,20 +265,32 @@ RUN /work/configure.sh
      
      Example output:
      ```
-     image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:fbb7162060754261247ad1948dccee0b24b6048b95cd704bf2997eb6f5abfeae
+     image-registry.openshift-image-registry.svc:5000/apps-was/cos-was@sha256:bc072d3b78ae6adcd843af75552965e5ed863bcce4fc3f1bc5d194570bc16953
      ```
 
-1. OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one already doesn't exist. Run the following command to see the _ImageStream_ that's created:
+1. OpenShift uses _ImageStream_ to provide an abstraction for referencing container images from within the cluster. When an image is pushed to registry, an _ImageStream_ is created automatically, if one doesn't already exist. Run the following command to see the _ImageStream_ that's created:
   
    ```
    oc get imagestreams -n apps-was
    ```
 
+   Example output:
+     ```
+    NAME      IMAGE REPOSITORY                                                              TAGS      UPDATED           
+    cos-was   default-route-openshift-image-registry.apps.demo.ibmdte.net/apps-was/cos-was  latest    2 minutes ago         
+
+     ```
+
    - You can also use the OpenShift console (UI) to see the _ImageStream_:
      - From the panel on left-side, click on **Builds** > **Image Streams**. 
      - Then select `apps-was` from the **Project** drop-down menu. 
      - Click on `cos-was` from the list. 
-     - Scroll down to the bottom to see the image that you pushed. 
+
+        ![imagestream1](extras/images/buildimage1.png)
+
+     - Scroll down to the bottom to see the image that you pushed.
+
+        ![imagestream2](extras/images/buildimage2.png) 
 
 <a name="deploy"></a>
 ## Deploy without operator 
@@ -297,7 +324,7 @@ Since migrating the database is not the focus of this particular workshop and to
      - `Route.yaml`: the specification to expose the service as a route visible outside of the cluster.
      - `Secret.yaml`: the specification that the `properties based configuration` properties file used to configure database user/password when the container starts.
 
-   - The concepts of a `route` and a `service` have already been covered in the *Introduction to Openshift* lab, and will not be covered here. The concept of a deployment has been covered as well, but we are making use of a few additional features:
+   - The file `Deployment.yaml` looks like:
 
      ```yaml
      apiVersion: apps/v1
@@ -346,7 +373,7 @@ Since migrating the database is not the focus of this particular workshop and to
      - Note:
        - The liveness probe is used to tell Kubernetes when the application is live. Due to the size of the traditional WAS image, the initialDelaySeconds attribute has been set to 90 seconds to give the container time to start.
        - The readiness probe is used to tell Kubernetes whether the application is ready to serve requests. 
-       - You may store property file based configurationfiles as configmaps and secrets, and bind their contents into the `/etc/websphere` directory. 
+       - You may store property file based configuration files such as configmaps and secrets, and bind their contents into the `/etc/websphere` directory. 
        - When the container starts, the server startup script will apply all the property files found in the `/etc/websphere` directory to reconfigure the server.
        - For our example, the `volumeMounts` and `volumes` are used to bind the contents of the secret `authdata` into the directory `/etc/websphere` during container startup. 
        - After it is bound, it will appear as the file `/etc/websphere/authdata.properties`. 
@@ -406,8 +433,7 @@ Since migrating the database is not the focus of this particular workshop and to
      ```
 
      - The attribute `authdata.properties` contains the properties file based configure used to update the database userId and password for the JAASAuthData whose alias is DBUser. 
-     - The configuration in Deployment.yaml maps it as the file `/etc/websphere/authdata.properties` during container startup so that the application server startup script can automatically configures the server with these entries. 
-     - Note that changes to the contents of the configmap or secret are not automatically refreshed by the running application server pods. The simplest way to get the changes applied is to delete the pods, forcing the deployment controller to start new pods.  
+     - The configuration in Deployment.yaml maps it as the file `/etc/websphere/authdata.properties` during container startup so that the application server startup script can automatically configure the server with these entries. 
 
 
 <a name="access-the-application"></a>
@@ -422,7 +448,7 @@ Since migrating the database is not the focus of this particular workshop and to
    ```
    Using project "apps-was" on server "https://c114-e.us-south.containers.cloud.ibm.com:30016".
    ```
-   - If it's not at the project `apps-was`, then swtich:
+   - If it's not at the project `apps-was`, then switch:
      ```
      oc project apps-was
      ```
@@ -443,48 +469,59 @@ Since migrating the database is not the focus of this particular workshop and to
    
    Example output:
    ```
-   http://cos-was-apps-was.<your-cluster-name>-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/CustomerOrderServicesWeb
+   http://cos-was-apps-was.apps.demo.ibmdte.net/CustomerOrderServicesWeb
    ```
 
-1. Point your browser to the output URL of the above command. 
-   - Login as user `skywalker` and password `force`.  (The file-based user is stored in fileregistry.xml of traditional WebSphere container.)
-   - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
-   - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - Add few items to the cart. 
-   - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
-   - Close the browser.
+1. Return to your Firefox browser window and go to the URL outputted by the command run in the previous step.
+
+1. You will be prompted to login in order to access the application. Enter the following credentials:
+    - Username: **skywalker**
+    - Password: **force**
+
+    ![accessapplication1](extras/images/accessapplication1.png)
+
+1. After login, the application page titled _Electronic and Movie Depot_ will be displayed. From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
+
+    ![accessapplication2](extras/images/accessapplication2.png)
+
+1. Add a few items to the cart. As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
+    ![accessapplication3](extras/images/accessapplication3.png)
+
+1. Close the browser.
 
 ### Review the application workload flow without operator (Hands-on)
 
 1. Below is an overview diagram on the deployment you've completed from the above steps: 
    - Note: DB2 in the middle of the diagram is pre-installed through a different project `db` and has been up and running before your hands-on.  Also it will not be impacted when you're removing the deployment in next step.
 
-   ![applicaiton flow with standard deployment](extras/images/app-flowchart_1.jpg)
+   ![application flow with standard deployment](extras/images/app-flowchart_1.jpg)
    
  
-1. Navigate from OpenShift Console to view the resources on the deployment:
-   - Resources in the project `apps-was`:
-   
-     - `deployment` details:
-       - select `cos-was`
+1. Return to the Firefox browser and open the OpenShift Console to view the resources on the deployment.
+
+1. View the resources in the project `apps-was`:
+     - Select the `apps-was` project from the project drop down menu.
+     - View `deployment` details:
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos-was`
      
          ![app-was deployment1](extras/images/workload-deploy1.jpg)
    
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
      
          ![app-was deployment2](extras/images/workload-deploy2.jpg)
      
      
-     - `pod` details:
-       - select `cos-was-`
+     - View `pod` details:
+       - Click on the **Pods** tab under **Workloads** from the left menu and select the pod with name starting with `cos-was`
      
          ![app-was pod1](extras/images/workload-pod1.jpg)
      
-       - select `Logs` tab to view the WebSphere Application Server log
+       - Navigate to the `Logs` tab to view the WebSphere Application Server log
      
          ![app-was pod3](extras/images/workload-pod3.jpg)
      
-       - select `Terminal` tab to view the files inside the container
+       - Navigate to the `Terminal` tab to view the files inside the container
      
          ![app-was pod4](extras/images/workload-pod4.jpg)
      
@@ -492,60 +529,67 @@ Since migrating the database is not the focus of this particular workshop and to
          ![app-was pod5](extras/images/workload-pod5.jpg)
      
      
-     - `secret` details:
-       - select `authdata`
+     - View `secret` details:
+       - Click on the **Secrets** tab under **Workloads** from the left menu and select the `authdata` secret.
      
          ![app-was secret1](extras/images/workload-secret1.jpg)
       
-       - select Copy icon to view the content
+       - Scroll down to the **Data** section and click on the copy icon to view the content.
      
          ![app-was secret2](extras/images/workload-secret2.jpg)
       
       
-     - `service` details:
+     - View `service` details:
+       - Click on the **Services** tab under **Networking** from the left menu and select the `cos-was` service.
+
+         ![service](extras/images/reviewapplication1.png)
+
+       - Review service information including address and port mapping details.
    
-       ![app-was service](extras/images/network-service.jpg)
+         ![app-was service](extras/images/network-service.jpg)
       
       
-     - `route` details:
-   
-       ![app-was route](extras/images/network-route.jpg)
+     - View `route` details:
+       - Click on the **Routes** tab under **Networking** from the left menu and select the `cos-was` route.
+
+         ![app-was route](extras/images/network-route.jpg)
 
      <a name="db project resource"></a>
-   - Resources in the project `db`:
-     
-     - `deployment` details:   
-       - select `cos-db-was`
+  1. View the resources in the project `db`:
+     - Select the `db` project from the project drop down menu.
+
+     - View `deployment` details:   
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos-db-was`
        
          ![db deploy1](extras/images/db_deploy_1.jpg)
 
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
        
          ![db deploy2](extras/images/db_deploy_2.jpg)
         
-     - `pod details:
-       - select  `cos-db-was-`
+     - View `pod` details:
+       - Click on the **Pods** tab under **Workloads** from the left menu and select the pod with name starting with `cos-db-was`
        
          ![db pod1](extras/images/db_pod_1.jpg)
        
-       - select `Logs` tab to view the database logs
-       - select `Terminal` tab to view the files in the database container
+       - Navigate to the `Logs` tab to view the database logs
+       - Navigate to the `Terminal` tab to view the files in the database container
        
          ![db pod2](extras/images/db_pod_2.jpg)
         
-     - `service` details:
-       - select  `cos-db-was`
+     - View `service` details:
+       - Click on the **Services** tab under **Networking** from the left menu and select the `cos-db-was` service.
        
-       ![db service1](extras/images/db_net_service_1.jpg)
+         ![db service1](extras/images/db_net_service_1.jpg)
 
-       ![db service2](extras/images/db_net_service_2.jpg)
+         ![db service2](extras/images/db_net_service_2.jpg)
 
 
 
 ## Remove your deployment (standard deployment without operator) (Hands-on)
 
-To remove the deploment from the above scenario without operator, run the command:
-- Note: The pre-installed resource such as DB2, are not removed.
+To remove the deploment from the above scenario without the operator, run the command:
+> Note: The pre-installed resources such as DB2, are not removed.
 
 ```
 oc delete -f deploy
@@ -562,8 +606,7 @@ service "cos-was" deleted
 <a name="deploy-rco"></a>
 ## Alternate Deployment Via Runtime Component Operator
 
-Another way to deploy the application is via the Runtime Component Operator. It is a generic operator used to deploy different types of application images. 
-The Runtime Component Operator is part of a set of devops tools that also includess application stacks. Together, they will enable the enterprise architect to better control the creation and deployment of application images. For more information, see: https://github.com/application-stacks/runtime-component-operator
+Another way to deploy the application is via the Runtime Component Operator. It is a generic operator used to deploy different types of application images. The operator has already been installed into your environment. For more information, see: https://github.com/application-stacks/runtime-component-operator
 
 ### Deploy application (via Runtime Component Operator) (Hands-on)
 
@@ -579,7 +622,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
    ```
 
 1. Let's review what we just did. 
-   - First, list the contents of the deploy-rco directory:
+   - First, list the contents of the `deploy-rco` directory:
 
      ```
      ls deploy-rco
@@ -595,8 +638,8 @@ The Runtime Component Operator is part of a set of devops tools that also includ
      cat deploy-rco/Secret.yaml
      ```
 
-     - Note that it is the same as the Secret.yaml in the `deploy` directory, except the name has been changed to authdata-rco.  
-     - It serves the same purpose for this new deployment, to override the database user/password.
+     - Note that it is the same as the `Secret.yaml` in the `deploy` directory, except the name has been changed to `authdata-rco`.  
+     - It serves the same purpose for this new deployment - to override the database user/password.
 
 
     - Review RuntimeComponent.yaml:
@@ -644,7 +687,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
       ```
 
       Note that:
-      - The Kind is `RuntimeComponent`
+      - The kind is `RuntimeComponent`
       - The `expose` attribute is set to `true` to expose a route
       - The attributes within the yaml file are essentially the same information that you provided for the `Service`, `Route`, and `Deployment` resources in the `deploy` directory.
       - The controller for the RuntimeComponent custom resource reacts to changes in the above specification, and creates the corresponding `Service`, `Route`, and `Deployment` objects. Issue the following commands to view what the controller has created:
@@ -666,7 +709,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
    ```
    Using project "apps-was" on server "https://c114-e.us-south.containers.cloud.ibm.com:30016".
    ```
-   - If it's not at the project `apps-was`, then swtich:
+   - If it's not at the project `apps-was`, then switch:
      ```
      oc project apps-was
      ```
@@ -689,16 +732,26 @@ The Runtime Component Operator is part of a set of devops tools that also includ
    
    Example output:
    ```
-   http://cos-was-rco-apps-was.<your-cluster-name>-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/CustomerOrderServicesWeb
+   http://cos-was-rco-apps-was.apps.demo.ibmdte.net/CustomerOrderServicesWeb
    ```
 
-1. Point your browser to the output URL of the above command. 
-   - Login as user `skywalker` and password `force`.  (The file-based user is stored in fileregistry.xml of traditional WebSphere container.)
-   - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
-   - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - Add few items to the cart. 
-   - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
-   - Close the browser.
+1. Return to your Firefox browser window and go to the URL outputted by the command run in the previous step. The steps to access the application are the same as those used when deploying without the operator.
+
+1. You will be prompted to login in order to access the application. Enter the following credentials:
+    - Username: **skywalker**
+    - Password: **force**
+
+    ![withoutoperator1](extras/images/withoutoperator1.png)
+
+1. After login, the application page titled _Electronic and Movie Depot_ will be displayed. From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
+
+    ![accessapplication2](extras/images/accessapplication2.png)
+
+1. Add a few items to the cart. As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
+    ![accessapplication3](extras/images/accessapplication3.png)
+
+1. Close the browser.
   
 
 ### Review the application workload flow with Runtime Component Operator (Hands-on)
@@ -707,99 +760,104 @@ The Runtime Component Operator is part of a set of devops tools that also includ
    - Note: DB2 in the middle of the diagram is pre-installed through a different project `db` and has been up and running before your hands-on.
 
    ![applicaiton flow with runtime component operator deployment](extras/images/app-flowchart_2.jpg)
-   
-   
-1. Navigate from OpenShift Console to view the resources on the deployment:
-   - Resources in the project `openshift-operators`:
-   
-     - Operator's `deployment` details
-     
-       - select `runtime-component-operator`
+
+
+1. Return to the Firefox browser and open the OpenShift Console to view the resources on the deployment.
+
+1. View the resources in the project `openshift-operators`:
+     - Select the `openshift-operators` project from the project drop down menu.
+     - View operator `deployment` details:
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `runtime-component-operator`
              
          ![rco deploy1](extras/images/rco-deploy1.jpg)
          
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
        
          ![rco deploy2](extras/images/rco-deploy2.jpg)
    
-     - Operator's `pod` details
-     
-       - select `runtime-component-operator-`
+     - View operator `pod` details:
+       - Click on the **Pods** tab under **Workloads** from the left menu and select the pod with name starting with `runtime-component-operator`
        
          ![rco pod1](extras/images/rco-pod1.jpg)
          
-       - select `Logs` to view the runtime-component-operator container log
+       - Navigate to `Logs` to view the runtime-component-operator container log
        
          ![rco pod2](extras/images/rco-pod2.jpg)
          
-       - select `Terminal` to view the files in the container
+       - Navigate to `Terminal` to view the files in the container
        
           ![rco pod3](extras/images/rco-pod3.jpg)
                
    
-   - Resources in the project `apps-was`:
+  1. View the resources in the project `apps-was`:
+     - Select the `apps-was` project from the project drop down menu.
    
-     - `Runtime Component` instance details:
-       - select `Runtime Component Operator`.  Note: The operator is installed at cluster level and is visible to all existing projects, but Runtime Component instance is created under the project `apps-was`.
+     - View `Runtime Component` instance details:
+       - Click on the **Installed Operators** tab under **Operators** from the left menu and select `Runtime Component Operator`.  
+          > Note: The operator is installed at cluster level and is visible to all existing projects, but Runtime Component instance is created under the project `apps-was`.
      
          ![rco op1](extras/images/rco-op1.jpg)
 
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
      
          ![rco op2](extras/images/rco-op2.jpg)
 
-       - select `Runtime Component` tab and select `cos-was-rco` to view the deails of Runtime Component instance
+       - Navigate to the`Runtime Component` tab and select `cos-was-rco` to view the deails of Runtime Component instance
        
          ![rco op3](extras/images/rco-op3.jpg)
      
-     - Application `deployment` details:
-       - select `cos-was-rco`
+     - View `deployment` details:
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos-was-rco`.
        
          ![rc workload deploy1](extras/images/rc-workload-deploy1.jpg)  
        
-       - select `YAML` tab to view the content of yaml.  Note the deployment is created through the controller of RuntimeComponent custom resource.
+       - Navigate to the `YAML` tab to view the content of yaml.    
+          > Note the deployment is created through the controller of RuntimeComponent custom resource.
        
          ![rc workload deploy2](extras/images/rc-workload-deploy2.jpg)
          
          
-     - Application `pod` details:    
-       - select `cos-was-rco-`
+     - View `pod` details:    
+       - Click on the **Pods** tab under **Workloads** from the left menu and select the pod starting with `cos-was-rco`
        
          ![rc workload pod1](extras/images/rc-workload-pod1.jpg)  
        
-       - select `Logs` tab to view the WebSphere Application Server log
+       - Navigate to the `Logs` tab to view the WebSphere Application Server log
        
          ![rc workload pod2](extras/images/rc-workload-pod2.jpg)  
          
-     - Application `service` details:
-       - select `cos-was-rco`
+     - View `service` details:
+       - Click on the **Services** tab under **Networking** from the left menu and select `cos-was-rco`
        
          ![rc network service1](extras/images/rc-net-service1.jpg) 
          
-       - select `YAML` to view the content of yaml.  Note the service is created through the controller of RuntimeComponent custom resource.
+       - Navigate to the `YAML` tab to view the content of yaml.    
+          > Note the service is created through the controller of RuntimeComponent custom resource.
          
          ![rc network service2](extras/images/rc-net-service2.jpg) 
        
-     - Application `route` details:
-       - select `cos-was-rco`
+     - View `route` details:
+       - Click on the **Routes** tab under **Networking** from the left menu and select `cos-was-rco`
        
          ![rc network route1](extras/images/rc-net-route1.jpg) 
          
-       - select `YAML` to view the content of yaml.  Note the route is created through the controller of RuntimeComponent custom resource.
+       - Navigate to the `YAML` tab to view the content of yaml.  
+          > Note the route is created through the controller of RuntimeComponent custom resource.
          
          ![rc network route2](extras/images/rc-net-route2.jpg)   
      
-      - Application `secret` details:
-        - select `authdata-rco`
+      - View `secret` details:
+        - Click on the **Secrets** tab under **Workloads** from the left menu and select `authdata-rco`
         
           ![rc workload secret1](extras/images/rc-workload-secret1.jpg) 
         
-   - Resources in the project `db`: Same information as listed in the section above in **Review the application workload flow without operator**.
+  1.  Resources in the project `db`: 
+      - Same information as listed in the section above in **Review the application workload flow without operator**.
          
          
 ## Cleanup (the deployment with Runtime Component Operator) (Hands-on)
 
-1. Run the following command to remove the deployment from the above secenario with Runtime Component instance:
+1. Run the following command in a terminal window to remove the deployment from the above secenario with Runtime Component instance:
    - Note: The pre-installed resources such as Runtime Component Operator, DB2, are not removed.
 
      ```
@@ -820,7 +878,7 @@ The Runtime Component Operator is part of a set of devops tools that also includ
    oc get Route 
    ```
    
-   Output from each `get` command above:
+   Output from each `get` command above should be:
    ```
    No resources found in apps-was namespace.
    ```

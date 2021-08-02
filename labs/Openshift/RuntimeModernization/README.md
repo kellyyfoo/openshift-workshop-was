@@ -3,13 +3,12 @@
 ## Table of Contents
 
 - [Introduction](#introduction)
-- [Analysis](#analysis) (Reading only)
+- [Analysis](#analysis) (Hands-on)
 - [Build](#build) (Hands-on)
 - [Deploy](#deploy) (Hands-on)
 - [Access the Application](#access-the-application-hands-on) (Hands-on)
 - [Review Deployment](#review-deployment)
-- [Review Keycloak setup](#review-keycloak-setup-optional) (Optional)
-- [Cleanup](#cleanup-hands-on)
+- [Cleanup](#cleanup-hands-on) (can be skipped if the next lab Application Management is included in the same session)
 - [Extra Credit](#extra-credit)
 - [Summary](#summary)
 - [Next](#next)
@@ -18,59 +17,128 @@
 
 **Runtime modernization** moves an application to a 'built for the cloud' runtime with the least amount of effort. **Open Liberty** is a fast, dynamic, and easy-to-use Java application server. Ideal for the cloud, Liberty is open sourced, with fast start-up times (<2 seconds), no server restarts to pick up changes, and a simple XML configuration.
 
-Liberty however doesn't support all of the legacy Java EE and WebSphere proprietary functionality and some code changes maybe required to move an existing application to the new runtime. Effort is also required to move the application configuration from traditional WebSphere to Liberty's XML configuration files.
-
-**This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application was modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
+**This path gets the application on to a cloud-ready runtime container which is easy to use and portable. In addition to the necessary library changes, some aspects of the application were modernized. However, it has not been 'modernized' to a newer architecture such as micro-services**.
 
 This lab demonstrates **runtime modernization**.
 It uses the **Customer Order Services** application, which originates from WebSphere ND V8.5.5. 
-Click [here](extras/application.md) and get to know the application, its architecture and components.
-The application will go through **analysis**, **build** and **deploy** phases. 
+Click [here](extras/application.md) to get to know the application, including its architecture and components.
+The application will go through the **analysis**, **build** and **deploy** phases. 
 It is modernized to run on the Liberty runtime, and
-deployed via the IBM Cloud Pak for Applications to RedHat OpenShift.
+deployed via the IBM Cloud Pak for Applications to RedHat OpenShift Container Platform (OCP).
 
+<a name="Login_VM"> </a>
+## Login to the VM
+1. If the VM is not already started, start it by clicking the Play button.
+ 
+   ![start VM](extras/images/loginvm1.png)
+   
+3. After the VM is started, click the **desktop** VM to access it.
+   
+   ![desktop VM](extras/images/loginvm2.png)
+   
+3. Login with **ibmuser** ID.
+   * Click on the **ibmuser** icon on the Ubuntu screen.
+   * When prompted for the password for **ibmuser**, enter "**engageibm**" as the password: \
+     Password: **engageibm**
+     
+     ![login VM](extras/images/loginvm3.png)
+     
+4. Resize the Skytap environment window for a larger viewing area while doing the lab. From the Skytap menu bar, click on the "**Fit to Size**" icon. This will enlarge the viewing area to fit the size of your browser window. 
+
+   ![fit to size icon](extras/images/loginvm4.png)
 
 <a name="analysis"></a>
-## Analysis (Background reading only)
+## Analysis (Hands-on)
 
-IBM Cloud Transformation Advisor was used to analyze the existing Customer Order Services application and the WebSphere ND runtime. The steps taken were:
+In this lab, we will demonstrate how the Transformation Advisor can be used specifically in the runtime modernization process.
 
-1. Used the IBM Cloud Transformation Advisor available as part of IBM Cloud Pak for Applications. Transformation Advisor Local (Beta) can also be used.
+The steps needed to analyze the existing Customer Order Services application are:
 
-2. Downloaded and executed the **Data Collector** against the existing WebSphere ND runtime.
+1. Open a Firefox browser window from within the VM. 
+    ![firefox](extras/images/analysis1.png)
 
-3. Uploaded the results of the data collection to IBM Cloud Transformation Advisor. A screenshot of the analysis is shown below:
+1. Click on the **openshift console** bookmark in the top left and log in with the **htpasswd** option.
 
-    ![Liberty analysis](extras/images/liberty-analyze/analysis1a.jpg)
+    ![openshift console](extras/images/analysis2.png)
 
-- In the case of the **CustomerOrderServicesApp.ear** application, IBM Cloud Transformation Advisor has determined that the migration to Liberty on Private Cloud is of **Moderate** complexity and that there are two **Severe Issues** that have been detected.
+1. Log in to the OpenShift account using the following credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
 
-- Drilling down in to **Detailed Migration Analysis Report** that is part of the application analysis, it is apparent that IBM Cloud Transformation Advisor has detected that there are issues with lookups for Enterprise JavaBeans and with accessing the Apache Wink APIs.
+    ![login](extras/images/analysis3.png)
 
-  ![JPA](extras/images/liberty-analyze/severe.jpg)
+1. From the Red Hat OpenShift Container Platform console, go to the **Networking** tab and click on **Routes**. Ensure that you are in the **ta** project by using the project drop down and click on the Location URL next to `ta-ui-route`.
 
-- **Behaviour change on lookups for Enterprise JavaBeans**: In Liberty, EJB components are not bound to a server root Java Naming and Directory Interface (JNDI) namespace as they are in WebSphere Application Server traditional. The fix for this is to change the three classes that use `ejblocal` to use the correct URL for Liberty
+    ![ta](extras/images/analysis4.png)
 
-- **The user of system provided Apache Wink APIs requires configuration**: To use system-provided third-party APIs in Liberty applications, you must configure the applications to include the APIs. In WebSphere Application Server traditional, these APIs are available without configuration. This is a configuration only change and can be achieved by using a `classloader` definition in the Liberty server.xml file.
+1. This will open the Transformation Advisor user interface. Click **Create new** under **Workspaces** to create a new workspace. 
 
-- In summary, some minimal code changes were required to move this application to the Liberty runtime and the decision was taken to proceed with these code changes.
+    ![TA starting page](extras/images/ta-create-collection.png)
 
-**Homework**: After you complete this workshop, review the step-by-step instructions on how to replicate these steps from the resources included in _Next Steps_ section. Then try Transformation Advisor with one of your applications to migrate it to Liberty.
+1. Name it **RuntimeModernization** and click **Next**. 
 
+    ![Choose workspace name](extras/images/ta-name-workspace.png)
+    
+    You'll be asked to create a new collection to store the data collected from the **Customer Order Services** application. Name it **CustomerOrderServices**. Click **Create**. 
+    
+    ![Choose collection name](extras/images/ta-name-collection.png)
+
+1. The **No recommendations available** page is displayed. To provide data and receive recommendations, you can either download and execute the **Data Collector** against an existing WebSphere environment, or upload an existing data collection archive. The archive has already been created for you and the resulting data is stored [here](resources/datacollection.zip). 
+
+    ![TA no recommendations available screen](extras/images/ta-upload.png)
+    
+    Upload the results of the data collection (the [**datacollector.zip**](resources/datacollection.zip) file) to IBM Cloud Transformation Advisor.
+    
+    ![TA upload collection screen](extras/images/ta-upload-datacollection-dialog.png)
+
+1. When the upload is complete, you will see a list of applications analyzed from the source environment. At the top of the page, you can see the source environment and the target environment settings.  
+
+    ![TA recommendations screen for the data collection](extras/images/analysis5.png)
+    
+    Under the **Migration target** field, click the down arrow and select **Compatible runtimes**. This shows an entry for each application for each compatible destination runtime you can migrate it to.
+    
+    ![TA choosing compatible runtimes](extras/images/ta-compatible-runtimes.png)
+
+1. Click the **CustomerOrderServicesApp.ear** application with the **Open Liberty** migration target to open the **Application details page**. This lab covers runtime modernization, so the application will be re-platformed to run on Open Liberty, and will be placed in a container and deployed to OCP.
+
+    ![TA choosing CustomerOrderServices Open Liberty target](extras/images/ta-cos-ol.png)
+    
+1. Look over the migration analysis which shows a summary of the complexity of migrating this application to this target. In summary, migration of this application to Open Liberty is of **Moderate** complexity as some code changes may be required. (Note: there may be a severe issue related to third-party APIs, but this doesn't apply as they occur in test code.)
+
+    ![TA detailed analysis for CustomerOrderServices](extras/images/analysis6.png)
+
+
+1. Click on **View migration plan** in the top right corner of the page. 
+    
+    ![TA migration plan button](extras/images/analysis7.png)
+    
+    This page will help you assemble an archive containing:
+    - your application's source or binary files (you upload these here or specify Maven coordinates to download them)
+    - the wsadmin scripts needed to configure your application and its resources (generated by Transformation Advisor and automatically included)
+    - the deployment artifacts needed to create the container image and deploy the application to OCP (generated by Transformation Advisor and automatically included)
+
+    ![TA migration plan page](extras/images/analysis8.png)
+
+> NOTE: These artifacts have already been provided for you as part of the lab files, so you don't need to download the migration plan. However, you can do so if you wish to look around at the files. These files can also be sent to a Git repository by Transformation Advisor.
 
 <a name="build"></a>
 ## Build (Hands-on)
 
 In this section, you'll learn how to build a Docker image for Customer Order Services application running on Liberty.
 
-Building this image could take around ~3 minutes (multi-stage build that compiles the code, which takes extra time). 
-Let's kick that process off and then come back to learn what you did.
+Building this image could take around ~3 minutes so let's kick that process off and then come back to learn what you did.
 
-1. Open the web terminal (the same one from lab setup) for command line interface. If it's not already open, follow the instructions [here](https://github.com/IBM/openshift-workshop-was/tree/master/setup#access-the-web-terminal) to access the web terminal.
+1. Open a new terminal window from the VM desktop.
 
-1. Follow the instructions in the [Login section](https://github.com/IBM/openshift-workshop-was/tree/master/labs/Openshift/IntroOpenshift#login) to login to OpenShift CLI through issing `oc login` command from the web terminal. Without a successful `oc login`, attempting to run the follow-on `oc` commmands (e.g., `oc new-project ...`),  you will get a permission error.
+    ![terminal window](extras/images/build1.png)
 
-1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your web terminal:
+1. Login to OpenShift CLI with the `oc login` command from the web terminal. When prompted for the username and password, enter the following login credentials:
+    - Username: **ibmadmin**
+    - Password: **engageibm**
+    
+      ![oc login](extras/images/build2.png)
+
+1. If you have not yet cloned the GitHub repo with the lab artifacts, run the following command on your terminal:
     ```
     git clone https://github.com/IBM/openshift-workshop-was.git
     ```
@@ -84,76 +152,22 @@ Let's kick that process off and then come back to learn what you did.
 
 1. Run the following command to start building the image. Make sure to copy the entire command, including the `"."` at the end (indicated as the location of current directory). While the image is building (which takes ~3 minutes), continue with rest of the lab:
    ```
-   docker build --tag image-registry.openshift-image-registry.svc:5000/apps/cos .
+   docker build --tag default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos .
    ```
 
-### Library changes (for reading only)
+## Modernize with MicroProfile (for reading only)
+Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. However, even though our application has not been refactored into microservices, we can still take advantage of some of the technologies from MicroProfile.
 
-- Made the simple code changes required for the EJB lookups which were recommended by IBM Cloud Transformation Advisor. The three Java classes that should be modified to look up Enterprise JavaBeans differently are shown in the detailed analysis view of IBM Cloud Transformation Advisor:
+### Determine application's availability (for reading only)
 
-  ![Analysis](extras/images/analysis.jpg)
+In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that an application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if the application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests would fail or queue up, leading to bigger problems.
 
-- Below is an example of the code changes required for one of the three Java classes. The `org.pwte.example.resources.CategoryResource.java` is changed from using `ejblocal` as shown below:
-
-  Before:
-
-    ```java
-    ...
-    InitialContext().lookup("ejblocal:org.pwte.example.service.ProductSearchService");
-    ...
-    ```
-
-  After:
-
-  ```java
-  ...
-  InitialContext().lookup("java:app/CustomerOrderServices/ProductSearchServiceImpl!org.pwte.example.service.ProductSearchService");
-  ...
-  ```
-
-- Upgraded to Java EE8. Changed from using annotations from _jackson_ to _jsonb_. For example, changed from `@JsonProperty(value="id")` to `@JsonbProperty(value="id")`.
-
-
-### Modernize with MicroProfile
-
-We used the opportunity to make code changes to modernize some aspects of the application as well. Eclipse MicroProfile is a modular set of technologies designed so that you can write cloud-native microservices. Even though our application is a monolith, we can still take advantage of some of the technologies from MicroProfile.
-
-
-#### Secure application
-
-We updated the application to use a token-based authentication mechanism to authenticate, authorize, and verify user identities. Added MicroProfile JWT to validate security tokens. The application was updated to use Keycloak, which runs on the cluster and will handle authenticating users. It'll also handle registering & storing user account information.
-
-#### Externalize configuration
-
-The application will have to run on many different environments. So it's important to avoid hardcoding environment specific values in your code. Otherwise, you'll have to update code, recompile and containerize it frequently. 
-
-MicroProfile Config separates the configuration from code. You can inject the external configuration into services in the containers without repackaging them. Applications can use MicroProfile Config as a single API to retrieve configuration information from different sources such as system properties, system environment variables, properties files, XML files, or data sources. Of course, you can do all this by yourself, but it'll be a lot of work and code. Add few MicroProfile Config annotations and you'll make your life easier and code a lot cleaner.
-
-We used MicroProfile Config to [inject information](app/CustomerOrderServicesWeb/src/org/pwte/example/resources/JWTConfigResource.java#L21) about the application's authenticator (Keycloak in this case). For example, added these 3 lines and at runtime the variable will automatically get the value injected by MicroProfile Config:
-
-  ```java
-  @Inject
-  @ConfigProperty(name = "SSO_URI")
-  private String keycloakURI;
-  ```
-
-#### Determine application's availability
-
-In the last lab, we used `/CustomerOrderServicesWeb/index.html` for readiness and liveness probes, which is not the best indication that application is ready to handle traffic or is healthy to process requests correctly within a reasonable amount of time. What if the database is down? What if application's security layer is not yet ready/unable to handle authentication? The Pod would still be considered ready and healthy and traffic would still be sent to it. All of those requests will fail or would queue up - leading to bigger problems.
-
-MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. Health can be determined by the service itself and might be based on the availability of necessary resources (for example, a database) and services. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
+MicroProfile Health provides a common REST endpoint format to determine whether a microservice (or in our case a monolith application) is healthy or not. The service itself might be running but considered unhealthy if the things it requires for normal operation are unavailable. All of the checks are performed periodically, and the result is served as a simple UP or DOWN at `/health/ready` and `/health/live` which can be used for readiness and liveness probes.
 
 We implemented the following health checks:
-- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): Keycloak is required to authenticate users. Application should only accept traffic if Keycloak client is up and running.
+- [ReadinessCheck](app/CustomerOrderServicesWeb/src/org/pwte/example/health/ReadinessCheck.java#L17): The application reports it is ready as long as the readiness check endpoint can be reached. Connections to other services and any other required conditions for the application to be considered ready are checked here.
 
   ```java
-  URL url = new URL(keycloakURI);
-  con = (HttpURLConnection) url.openConnection();
-  con.setRequestMethod("GET");
-  int status = con.getResponseCode();
-  if (status != 200) {
-    return HealthCheckResponse.named("Readiness").down().build();
-  }
   return HealthCheckResponse.named("Readiness").up().build();
   ```
 
@@ -174,9 +188,9 @@ We implemented the following health checks:
     return HealthCheckResponse.named("Liveness").up().build();
     ```
 
-#### Adding metrics to application
+### Adding metrics to application (for reading only)
 
-MicroProfile Metrics is used to gather metrics about the time it takes to add an item to cart, retrieve customer information and to count the number of time these operations are performed.
+MicroProfile Metrics is used to gather metrics about the time it takes to add an item to cart, retrieve customer information, and count the number of times these operations are performed.
 
   ```java
   @GET
@@ -187,111 +201,42 @@ MicroProfile Metrics is used to gather metrics about the time it takes to add an
   {
   ```
 
-### Liberty server configuration
+## Liberty server configuration (for reading only)
 
 The Liberty runtime configuration files are based on a template provided by IBM Cloud Transformation Advisor.  
-For this lab, instead of using a single server.xml, the configurations have been split into multiple configuration files and placed into [config/configDropins/overrides](config/configDropins/overrides) directory.
+For this lab, instead of using a single server.xml, the configurations have been split into multiple configuration files and placed into the [config/configDropins/overrides](config/configDropins/overrides) directory.
 
 - You may place configuration files into configDropins/overrides directory to override pre-existing configurations.
-- You may define separate template configurations that reflect the resources in your environment, and copy them into the configDropsins/overrides directory only for those applications that need them. For example,
-  - separate configuration files for each database. (Our sample application only uses one.)
-  - separate configuration files for each messaigng provider
-  - separate configuration files for different security requirements. 
-
-Have a look at the configuration files and note:
-
-  - The necessary features, including those for MicroProfile, are enabled (e.g. `jdbc-4.2, jaxrs-2.1, mpHealth-2.1`).
-
-  - An HTTP endpoint is configured by:
-    ```xml
-    <httpEndpoint httpPort="-1" httpsPort="9443" accessLoggingRef="accessLogging" id="defaultHttpEndpoint"/>
-    ```
-  
-  - Access logging is enabled to record all inbound client requests handled by HTTP endpoint. We'll visualize this data later in dashboard to identify and analyze potential problems. 
-
-  - Application with appropriate security role and classloader visibility is specified by `application` element.
-
-  - Database is configured using the `dataSource` element. Note that Liberty variables are used for certain attributes (e.g. `serverName="${DB_HOST}"`). 
-  This allows the same image to be instainated in different environments (e.g. production vs testing). Specifically for this lab, the values of `DB_USER` and `DB_PASSWORD` are configured via Kuberntes secrets. 
-  When the container starts, thery are injected into the container as environment variables for the Liberty runtime to pick up. How this works is explained later.
-
-  - The configuration to process the MicroProfile JWT token is defined using `mpJWT` element.
-
-  - `quickStartSecurity` provides an easy way to define an internal user registry with just one user. It is used to secure endpoints such as _/metrics_.
+- You may define separate template configurations that reflect the resources in your environment, and copy them into the configDropsins/overrides directory only for those applications that need them. 
 
 
-### Build instructions
+## Build image (Hands-on)
 
-The `Dockerfile` required to build the immutable image containing the application and Liberty runtime was created from the template provided by IBM Cloud Transformation Advisor. 
-Here is the final version of the file:
-
-  ```dockerfile
-  ## Build stage
-  FROM maven:latest AS builder
-  COPY app/ /
-  RUN cd CustomerOrderServicesProject && mvn clean package
-
-  ## Application image
-  FROM openliberty/open-liberty:full-java8-openj9-ubi
-
-  COPY --chown=1001:0 resources/ /opt/ol/wlp/usr/shared/resources/
-
-  COPY --chown=1001:0 config/server.xml /config/
-
-  COPY --chown=1001:0 config/configDropins/overrides/*.xml /config/configDropins/overrides/
-  
-  COPY --from=builder --chown=1001:0 CustomerOrderServicesApp/target/CustomerOrderServicesApp-0.1.0-SNAPSHOT.ear /config/apps/CustomerOrderServicesApp.ear
-
-  RUN configure.sh
-  ```
-
-  - This is a multi-stage Dockerfile, as indicated by the 2 instructions with `FROM`. The first stage builds the application using Maven. It uses the base image from Maven, copies the application source and then builds using Maven commands. The second stage is the actual application image, which uses the _ear_ file produced by the first stage. 
-
-  - The base image for this application image is `openliberty/open-liberty`, which is the official image for Open Liberty. The tag `full-java8-openj9-ubi` indicates the version of Java and that this image is based on Red Hat's Universal Base Image (UBI). We recommend using UBI images. The `full` keyword indicates that this image comes with additional Liberty features. There is also an image with `kernel`, which comes with the bare minimum server. In this case we are using the latest available image. But you can specify a specific Open Liberty release (for example: `20.0.0.3-full-java8-openj9-ubi`).
-
-  - Copy everything that the application needs into the container including the necessary db2 drivers.
-  
-  - For security, Liberty containers run as non-root. This is in fact a requirement for running certified containers in OpenShift. The `COPY` instruction by default copies as root. So change user and group using `--chown=1001:0` command.
-
-  - Next, copy empty configuration file into `/config/server.xml`.
-
-  - Then copy the actual configuration files into `/config/configDropsins/overrides` directory.
-
-  - Then copy application ear, produced by the first build stage. This is indicated by the `--from=builder`.
-
-  - As last step run `/configure.sh` which will populate shared classes cache to create a fit-for-purpose image.
-
-  Remember that each instruction in the Dockerfile is a layer and each layer is cached. You should always specify the volatile artifacts towards the end.
-
-
-### Build image (Hands-on)
-
-1. Go back to the web terminal to check the build you started earlier.
-   You should see the following message if image was built successfully. Please wait if it's still building:
+1. Go back to your terminal to check the build you started earlier.
+   You should see the following message if the image was built successfully. Please wait if it's still building:
 
    ```
-   Successfully tagged image-registry.openshift-image-registry.svc:5000/apps/cos:latest
+   Successfully tagged default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos:latest
    ```
 
-1. Validate that image is in the repository via the command line:
+1. Validate that the image is in the repository via the command line:
 
    ```
    docker images
    ```
 
-   - You should see the following images on the output. Notice that the base image, _openliberty/open-liberty_, is also listed. It was pulled as the first step of building application image.
+   - You should see the following images on the output. Notice that the base image, `openliberty/open-liberty`, is also listed. It was pulled as the first step of building application image.
 
      Example output:
      ```
      REPOSITORY                                                  TAG                     IMAGE ID            CREATED             SIZE
-     image-registry.openshift-image-registry.svc:5000/apps/cos   latest                  4758119add3f        2 minutes ago       883MB
+     default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos   latest                  4758119add3f        2 minutes ago       883MB
      <none>                                                      <none>                  5bcb83fad548        5 minutes ago       792MB
      openliberty/open-liberty                                    full-java8-openj9-ubi   e6b5411076fe        5 days ago          794MB
      maven                                                       latest                  1337d55397f7        4 weeks ago         631MB
      ```
 
 1. Before we push the image to OpenShift's internal image registry, create a separate project named `apps`.  
-   Reminder: Ensure you have run `oc login` command as directed in the [Build](#build) section before using OpenShift CLI.
    
    Choose one of two ways to create the project:
    
@@ -302,15 +247,22 @@ Here is the final version of the file:
      
      Example output:
      ```
-     Now using project "apps" on server "https://c115-e.us-south.containers.cloud.ibm.com:32661".
+     Now using project "apps" on server "https://api.demo.ibmdte.net:64
      . . .
      ```
      
-   - Via the console, from the left-panel: 
-     - Click on **Home** > **Projects**. 
-     - Click on `Create Project` button.
-     - Enter `apps` for the _Name_ field and click on `Create`.
-     - Go back to web terminal. 
+   - Via the OpenShift console:
+     - Open a Firefox browser window and click on the **openshift console** bookmark.
+     - Under the **Home** tab on the left menu, click **Projects**. 
+     - Click on the **Create Project** button.
+
+        ![createproject](extras/images/buildimage1.png)
+
+     - Enter `apps` for the _Name_ field and click on **Create**.
+
+        ![createproject](extras/images/buildimage2.png)
+
+     - Return to your terminal window.
      - Switch the current project in the command line to `apps` 
        ```
        oc project apps
@@ -330,12 +282,12 @@ Here is the final version of the file:
      namespace/apps labeled
      ```
      
-   - Via the console, from the left-panel, 
-     - Click on **Administration** > **Namespaces** 
+   - Via the OpenShift console:
+     - Under the **Administration** tab on the left menu, click on **Namespaces**.
      - Click on the menu-options for `apps` namespace 
-     - Click on `Edit Labels`
-     - Copy and paste `app-monitoring=true` into the text box 
-     - Click `Save`
+     - Click on **Edit Labels**.
+     - Copy and paste `app-monitoring=true` into the text box .
+     - Click **Save**.
 
        ![Add label to namespace](extras/images/add-monitor-label.gif)
 
@@ -344,7 +296,7 @@ Here is the final version of the file:
    - Note: From below command, a session token is obtained from the value of another command `oc whoami -t` and used as the password to login.
 
      ```
-     docker login -u openshift -p $(oc whoami -t) image-registry.openshift-image-registry.svc:5000
+     docker login -u openshift -p $(oc whoami -t) default-route-openshift-image-registry.apps.demo.ibmdte.net
      ```
      
      Example output:
@@ -360,12 +312,12 @@ Here is the final version of the file:
 1. Push the image to OpenShift's internal image registry via the command line, which could take up to a minute:
 
    ```
-   docker push image-registry.openshift-image-registry.svc:5000/apps/cos
+   docker push default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos
    ```
 
    Example output:
    ```
-   The push refers to repository [image-registry.openshift-image-registry.svc:5000/apps/cos]
+   The push refers to repository [default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos]
    9247390b40be: Pushed 
    9a21ca46f8e3: Pushed 
    b3cee8ba43fe: Pushed 
@@ -402,7 +354,7 @@ Here is the final version of the file:
      sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c   image-registry.openshift-image-registry.svc:5000/apps/cos@sha256:56d926b7ef64ed163ff026b7b5608ae97df4630235c1d0443a32a4fc8eb35a6c
      ```
 
-1. Verify the image stream is created via the command line:
+1. Verify that the image stream is created via the command line:
 
    ```
    oc get imagestreams
@@ -410,14 +362,18 @@ Here is the final version of the file:
 
    Example output:
    ```
-   NAME   IMAGE REPOSITORY                                            TAGS     UPDATED
-   cos    image-registry.openshift-image-registry.svc:5000/apps/cos   latest   2 minutes ago
+   NAME   IMAGE REPOSITORY                                                       TAGS     UPDATED
+   cos    default-route-openshift-image-registry.apps.demo.ibmdte.net/apps/cos   latest   2 minutes ago
    ```
 
 1. You may also check the image stream via the console: 
-   - From the left-panel, click on **Builds** > **Image Streams**. 
-   - Then select `apps` from the _Project_ drop-down list. 
+   - Return to the OpenShift console through your Firefox browser window.
+   - Under the **Builds** tab in the left menu, click on **Image Streams**. 
+   - Select project `apps` from the **Project** drop-down list. 
    - Click on `cos` from the list. 
+
+      ![imagestream](extras/images/buildimage3.png)
+
    - Scroll down to the bottom to see the image that you pushed.
    
      ![apps imagestream](extras/images/apps-imagestream.png)
@@ -426,55 +382,7 @@ Here is the final version of the file:
 <a name="deploy"></a>
 ## Deploy (Hands-on)
 
-Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already pre-configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_ and the application references database using the address of the _Service_.
-
-The OpenID Connector Provider Keycloak has already been pre-deployed in the cluster, and a realm named `Galaxy` is created. This is the security realm to be used for our application.  
-
-1. Configure the application by substiting the keycloak URL to the relevant configuration file.
-   - First, take a look at the contents of `deploy/overlay-apps/configmap.yaml` (at the current directory of `/openshift-workshop-was/labs/Openshift/RuntimeModernization`), and note the occurrences of `ENTER_YOUR_ROUTER_HOSTNAME_HERE`: 
-
-     ```
-     cat deploy/overlay-apps/configmap.yaml
-     ```
-
-     Output of yaml:
-     ```yaml
-     apiVersion: v1
-     kind: ConfigMap
-     metadata:
-       name: cos-config
-     data:
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_REALM : "Galaxy"
-       SSO_CLIENT_ID : "cos_app"
-       SSO_URI : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/"
-       JWT_ISSUER : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy"
-       JWT_JWKS_URI : "https://ENTER_YOUR_ROUTER_HOSTNAME_HERE/auth/realms/Galaxy/protocol/openid-connect/certs"
-       DB_HOST : "cos-db-liberty.db.svc"
-     ```
-     
-   - Run the following comment `sed` to substitute `ENTER_YOUR_ROUTER_HOSTNAME_HERE` with the actual hostname of your keycloak instance and then the command `cat` to display the yaml:
-   
-     ```
-     sed -i "s/ENTER_YOUR_ROUTER_HOSTNAME_HERE/$(oc get route keycloak -n keycloak  --template='{{ .spec.host }}')/" deploy/overlay-apps/configmap.yaml
-     cat deploy/overlay-apps/configmap.yaml
-     ```
-     
-     Example output of updated yaml:
-     ```yaml
-     apiVersion: v1
-     kind: ConfigMap
-     metadata:
-       name: cos-config
-     data:
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_REALM : "Galaxy"
-       SSO_CLIENT_ID : "cos_app"
-       SSO_URI : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/"
-       JWT_ISSUER : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy"
-       JWT_JWKS_URI : "https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy/protocol/openid-connect/certs"
-       DB_HOST : "cos-db-liberty.db.svc"
-     ```
+Customer Order Services application uses DB2 as its database. To deploy it to Liberty, a separate instance of the database is already pre-configured in the OpenShift cluster you are using. The database is exposed within the cluster using a _Service_, and the application references this database using the address of the _Service_.
 
 1. Deploy the application using the `-k`, or `kustomize` option of Openshift CLI now and we will explain how the deployment works in a later section. 
    - Preview what will be deployed:
@@ -488,12 +396,6 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
      apiVersion: v1
      data:
        DB_HOST: cos-db-liberty.db.svc
-       JWT_ISSUER: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy
-       JWT_JWKS_URI: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/realms/Galaxy/protocol/openid-connect/certs
-       SEC_TLS_TRUSTDEFAULTCERTS: "true"
-       SSO_CLIENT_ID: cos_app
-       SSO_REALM: Galaxy
-       SSO_URI: https://keycloak-keycloak.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/auth/
      kind: ConfigMap
      metadata:
        name: cos-config
@@ -589,118 +491,37 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
 
     Example output:
     ```
-    NAME   HOST/PORT                                                                                            PATH   SERVICES   PORT       TERMINATION          WILDCARD
-    cos    cos-apps.mchengupdate2-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud          cos        9443-tcp   reencrypt/Redirect   None
+    NAME   HOST/PORT                       PATH   SERVICES   PORT       TERMINATION          WILDCARD
+    cos    cos-apps.apps.demo.ibmdte.net          cos        9443-tcp   reencrypt/Redirect   None
     ```
 
-1. Create keycloak client configuration with the route for this application. 
-   - First, view the exsiting configuration, and note the occurrence of `ENTER_YOUR_APPLICATION_HOST_NAME_HERE`:
-
-     ```
-     cat keycloak/client.yaml
-     ```
- 
-     Output of yaml:
-     ```yaml
-     apiVersion: keycloak.org/v1alpha1
-     kind: KeycloakClient
-     metadata:
-       name: cos-app
-       namespace: keycloak
-       labels:
-         app: sso
-     spec:
-       realmSelector:
-         matchLabels:
-           app: sso
-       client:
-         clientId: cos_app
-         # clientAuthenticatorType: client-secret
-         enabled: true
-         consentRequired: false
-         publicClient: true
-         standardFlowEnabled: true
-         implicitFlowEnabled: false
-         directAccessGrantsEnabled: true
-         redirectUris:
-           - https://ENTER_YOUR_APPLICATION_HOSTNAME_HERE/*
-         webOrigins:
-           - "+"
-         protocol: openid-connect
-     ```
-     
-   - Run the following command `sed` to update `keycloak/client.yaml` to substitute `ENTER_YOUR_APPLICATION_HOSTNAME_HERE` with the actual hostname of application route URL and then the command `cat` to display the yaml:
-
-     ```
-     sed -i "s/ENTER_YOUR_APPLICATION_HOSTNAME_HERE/$(oc get route cos -n apps --template='{{ .spec.host }}')/" keycloak/client.yaml
-     cat keycloak/client.yaml
-     ```
-
-     Example of updated yaml:
-     ```yaml
-     apiVersion: keycloak.org/v1alpha1
-     kind: KeycloakClient
-     metadata:
-       name: cos-app
-       namespace: keycloak
-       labels:
-         app: sso
-     spec:
-       realmSelector:
-         matchLabels:
-           app: sso
-       client:
-         clientId: cos_app
-         # clientAuthenticatorType: client-secret
-         enabled: true
-         consentRequired: false
-         publicClient: true
-         standardFlowEnabled: true
-         implicitFlowEnabled: false
-         directAccessGrantsEnabled: true
-         redirectUris:
-           - https://cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/*
-         webOrigins:
-           - "+"
-         protocol: openid-connect
-     ```
-     
-   - After verifying the correct substitution, run the following command to apply the changes: 
-
-     ```
-     oc apply -f keycloak/client.yaml
-     ```
-     
-     Output of apply command:
-     ```
-     keycloakclient.keycloak.org/cos-app created
-     ```
-
-1. Verify your pod from the project `apps` is ready:
-   - First confirm you're at the current project `apps`:
+1. Verify that your pod from the project `apps` is ready:
+   - First, confirm you're at the current project `apps`:
      ```
      oc project
      ```
      
-   - If it's not at the project `apps`, then swtich:
+   - If it's not at project `apps`, then switch:
      ```
      oc project apps
      ```
      
    - and then run the following command to view the pod status:
    
-   ```
-   oc get pod 
-   ```
+      ```
+      oc get pod 
+      ```
 
-   Example output of pod status:
-   ```
-   NAME                   READY   STATUS    RESTARTS   AGE
-   cos-596b4f849f-2fg4h   1/1     Running   0          18m
-   ```
+      Example output of pod status:
+      ```
+      NAME                   READY   STATUS    RESTARTS   AGE
+      cos-596b4f849f-2fg4h   1/1     Running   0          18m
+      ```
+  - If the pod doesn't display the expected `Running` status (for example, after 5 minutes), then delete the pod to restart it.
+    From the command line, run `oc delete pod <pod name>`  (pod name is the string under NAME column from the output of `oc get pod`)
+    
 
-
-### Access the application (Hands-on)
+## Access the application (Hands-on)
 
 1. Run the following command to get the URL of your application:
    ```
@@ -709,287 +530,187 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
 
    Example output:
    ```
-   http://cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud/CustomerOrderServicesWeb
+   http://cos-apps.apps.demo.ibmdte.net/CustomerOrderServicesWeb
    ```
    
-1. Point a browser to your URL (returned from the above command). 
-   - You'll be taken to the login form. 
+1. Return to your Firefox browser window and go to the URL outputted by the previous command.
+   - You'll be shown a login dialog.
+   - Login with user `skywalker` and password `force`. (The user is pre-created/registered in the `basicRegistry` configured in Liberty.)
 
-     ![Galaxy Login](extras/images/galaxy-login.jpg)
+      ![accessapplication1](extras/images/accessapplication1.png)
 
-
-   - Login with user `skywalker` and password `force`. (The user is pre-created/registered in OpenID Connector Provider Keycloak.)
    - After login, the application page titled _Electronic and Movie Depot_ will be displayed.
+
+      ![accessapplication2](extras/images/accessapplication2.png)
+
    - From the `Shop` tab, click on an item (a movie) and on the next pop-up panel, drag and drop the item into the shopping cart. 
-   - Add few items to the cart. 
+
+      ![accessapplication3](extras/images/accessapplication3.png)
+
+   - Add a few items to the cart. 
    - As the items are added, they’ll be shown under _Current Shopping Cart_ (on the upper right) with _Order Total_.
+
+      ![accessapplication4](extras/images/accessapplication4.png)
+      
    - Close the browser.
 
 
-### Review the application workload flow with Open Liberty Operator (Hands-on)
+## Review the application workload flow with Open Liberty Operator (Hands-on)
+1. Return to the OpenShift console through a Firefox window to view the resources on deployment.
 
-1. Below is an overview diagram on the deployment you've completed from the above steps: 
-   - Note: DB2 and Keycloak in the middle of the diagram are pre-installed through the respective projects `db` and `keycloak`, and have been up and running before your hands-on.  
-
-   ![applicaiton flow with open liberty operator](extras/images/app-flowchart_openlibertyoperator.jpg)
-   
-   
-1. Navigate from OpenShift Console to view the resources on the deployment:
-   - Resources in the project `openshift-operators`:
-   
-     - Operator's `deployment` details
-       - select `open-liberty-operator`
+1. View the resources in the project `openshift-operators`:
+     - Select the `openshift-operators` project from the project drop down menu at the top of the page.
+     - View the operator's `deployment` details:
+       - Click on the **Deployments** tab under **Workloads** from the left menu and select `open-liberty-operator`
              
          ![olo deploy1](extras/images/olo_deploy1.jpg)
          
-       - select `YAML` tab to view the content of yaml
+       - Navigate to the `YAML` tab to view the content of yaml
        
          ![olo deploy2](extras/images/olo_deploy2.jpg)
 
-     - Operator's `pod` details
-       - select `open-liberty-operator-`
+     - View the operator's `pod` details:
+       - Click on the **Pods** tab under **Workloads** from the left menu, and select the pod starting with `open-liberty-operator`
        
          ![olo pod1](extras/images/olo_pod1.jpg)
          
-       - select `Logs` to view the open-liberty-operator container log
+       - Navigate to the `Logs` tab to view the `open-liberty-operator` container log
        
          ![olo pod2](extras/images/olo_pod2.jpg)
          
-       - select `Terminal` to view the files in the container
+       - Navigate to the `Terminal` tab to view the files in the container
        
          ![olo pod3](extras/images/olo_pod3.jpg)   
      
-    - Resources in the project `apps`:
+  1. View the resources in the project `apps`:
     
-      - `Open Liberty Application` instance details:
-        - select `Open Liberty Operator`.  Note: The operator is installed at cluster level and is visible to all existing projects, but Open Liberty Application instance is created under the project `apps`.
+      - Select the `apps` project from the project drop down menu at the top of the page. 
+      - View `Open Liberty Application` instance details:
+        - Click on the **Installed Operators** tab under **Operators** from the left menu and select `Open Liberty Operator`.  
+          > Note: The operator is installed at cluster level and is visible to all existing projects, but Open Liberty Application instance is created under the project `apps`.
     
           ![olo op1](extras/images/olo-op1.jpg)
           
-        - select `Open Liberty Application` tab and select `cos` to view the deails of Open Liberty Application instance
+        - Navigate to the `Open Liberty Application` tab and select `cos` to view the details of the Open Liberty Application instance
      
           ![olo op2](extras/images/olo-op2.jpg)
         
-        - select `YAML` tab to view the content of yaml
+        - Navigate to the `YAML` tab to view the content of yaml
         
           ![ola instance](extras/images/ola-instance.jpg)
           
-        - select `Resources` tab to view the resources of Open Liberty Application instance
+        - Navigate to the `Resources` tab to view the resources of Open Liberty Application instance
          
           ![ola resources](extras/images/ola-resources.jpg)
 
-      - Application `deployment` details:
-        - select `cos`
+      - View application `deployment` details:
+        - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos`
         
           ![ola workload deploy1](extras/images/ola-workload-deploy1.jpg)
 
-        - select `YAML` tab to view the content of yaml.  Note the deployment is created through the controller of OpenLibertyApplication custom resource.
+        - Navigate to the `YAML` tab to view the content of yaml.     
+          >Note the deployment is created through the controller of the OpenLibertyApplication custom resource.
        
           ![ola workload deploy2](extras/images/ola-workload-deploy2.jpg)
          
-      - Application `pod` details:    
-        - select `cos-`
+      - View application `pod` details:    
+        - Click on the **Pods** tab under **Workloads** from the left menu and select the pod starting with `cos-`
        
           ![ola workload pod1](extras/images/ola-workload-pod1.jpg)  
        
-        - select `Logs` tab to view the liberty access log
+        - Navigate to the `Logs` tab to view the liberty access log
         
           ![ola workload pod2](extras/images/ola-workload-pod2.jpg)      
          
-        - Note: by default, the Open Liberty Application instance is configured with liberty access log:
+          > Note: by default, the Open Liberty Application instance is configured with liberty access log:
         
           ![ola workload pod3](extras/images/ola-workload-pod3.jpg)
           
           
-       - Application `service` details:
+       - View application `service` details:
        
-         - select `cos`
+         - Click on the **Services** tab under **Networking** from the left menu and select `cos`
        
            ![ola network service1](extras/images/ola-net-service1.jpg) 
          
-         - select `YAML` to view the content of yaml.  Note the service is created through the controller of OpenLibertyApplication custom resource.
+         - Navigate to the `YAML` tab to view the content of yaml.  
+            > Note the service is created through the controller of OpenLibertyApplication custom resource.
          
            ![ola network service2](extras/images/ola-net-service2.jpg)   
          
-       - Application `route` details:
-         - select `cos`
+       - View application `route` details:
+         - Click on the **Routes** tab under **Networking** from the left menu and select `cos`
        
            ![ola network route1](extras/images/ola-net-route1.jpg) 
          
-         - select `YAML` to view the content of yaml.  Note the route is created through the controller of OpenLibertyApplication custom resource.
+         - Navigate to the `YAML` tab to view the content of yaml.  
+            >Note the route is created through the controller of OpenLibertyApplication custom resource.
          
            ![ola network route2](extras/images/ola-net-route2.jpg)   
        
-       - Application `secret` details:
-         - first, re-visit the yaml of Open Liberty Application instance to view the secrets are configured:
+       - View application `secret` details:
+         - First, return to the YAML of the Open Liberty Application instance to view the configured secrets:
          
            ![ola workload secret1](extras/images/ola-workload-secret1.jpg) 
          
            ![ola workload secret2](extras/images/ola-workload-secret2.jpg) 
            
            ![ola workload secret3](extras/images/ola-workload-secret3.jpg) 
-           
-         - select the respective secret and view the details 
+
+         - Click on the **Secrets** tab under **Workloads** from the left menu and select the respective secrets and view the details 
         
            ![ola workload secret4](extras/images/ola-workload-secret4.jpg) 
           
            ![ola workload secret5](extras/images/ola-workload-secret5.jpg)
            
            
-    - Resources in the project `db`:
-     
-      - db `deployment` details:   
-        - select `cos-db-liberty`
+  1. View the resources in the project `db`:
+      - Select the `db` project from the project drop down menu.
+      - View db `deployment` details:   
+        - Click on the **Deployments** tab under **Workloads** from the left menu and select `cos-db-liberty`
        
           ![ol-db deploy1](extras/images/oldb_deploy_1.jpg)
 
-        - select `YAML` tab to view the content of yaml
+        - Navigate to the `YAML` tab to view the content of yaml
        
           ![ol-db deploy2](extras/images/oldb_deploy_2.jpg)
         
-      - db `pod` details:
-        - select  `cos-db-liberty-`
+      - View db `pod` details:
+        - Click on the **Pods** tab under **Workloads** from the left menu and select the pod starting with `cos-db-liberty`
        
           ![ol-db pod1](extras/images/oldb_pod_1.jpg)
        
-        - select `Logs` tab to view the database logs
-        - select `Terminal` tab to view the files in the database container
+        - Navigate to the `Logs` tab to view the database logs
+        - Navigate to the `Terminal` tab to view the files in the database container
        
           ![ol-db pod2](extras/images/oldb_pod_2.jpg)
         
-      - db `service` details:
-        - select  `cos-db-liberty`
+      - View db `service` details:
+        - Click on the **Services** tab under **Networking** from the left menu and select  `cos-db-liberty`
        
           ![ol-db service1](extras/images/oldb_service_1.jpg)
 
           ![ol-db service2](extras/images/oldb_service_2.jpg)
 
 
-    - Resources in the project `keycloak`:
-     
-      - Keycloak Operator `deployment` details:   
-        - select `keycloak-operator`
-       
-          ![keycloak operator4](extras/images/keycloak_op4.jpg)
-          
-        - select `YAML` tab to view the content of yaml
-        
-          ![keycloak operator5](extras/images/keycloak_op5.jpg)
-          
-       - Keycloak Operator's pod details:
-         - select `keycloak-operator-`
-         
-           ![keycloak operator6](extras/images/keycloak_op6.jpg)
-           
-         - select `Logs` to view the keycloak-operator container log  
-         
-           ![keycloak operator7](extras/images/keycloak_op7.jpg)
-       
-        - Keycloak Operator's all instances details:
-          - select `Keycloak Operator`
-          
-            ![keycloak operator1](extras/images/keycloak_op1.jpg)
-
-          - select the respective tabs: `Keycloak`, `KeycloakRealm`, `KeycloakClient` to view the respective instance details, where
-            - `Keycloak` instance deploys the primary keycloak software component including database postgresql to store persistent data
-            - `KeycloakReam` instance contains the security realm management and credential data
-            - `KeycloakClient` instance contains the redirect URI information
-       
-            ![keycloak operator2](extras/images/keycloak_op2.jpg)
-        
-            ![keycloak instance](extras/images/keycloak_instance.jpg)
-          
-            ![keycloak realm](extras/images/keycloak_realm.jpg)
-          
-            ![keycloak client](extras/images/keycloak_client.jpg)
-          
-          - OR select `All Instances` to view the same insance details
-        
-            ![keycloak operator3](extras/images/keycloak_op3.jpg)
-      
-          - Keycloak application `deployment` details (for dababase postgresql portion):
-            - select `keycloak-postgresql`
-
-              ![keycloak workload deploy1](extras/images/keycloak_wk_deploy1.jpg)
-
-            - select `YAML` tab to view the content of yaml. Note the deployment is created through the controller of Keycloak custom resource.
-
-              ![keycloak workload deploy2](extras/images/keycloak_wk_deploy2.jpg)
-            
-          - Keycloak application `statefulset` details (for keycloak component portion):
-            - Note: 
-              - `StatefulSet` resource is equivalent to a special deployment used to manage stateful applications. 
-              - Each replica of the pod will have its own state and unique network identifier, and will be using its own stable persistent storage volume.
-              - The pod is created with a unique naming convention, for example, `<statefulsetname-0>` as 1st pod, `<statefulesetname-1>` as 2nd pod, etc.  
-              - See `keycloak-0` as an example in below pod details section.
-              - For comparion, the resource of `Deployment` deploys a stateless application and is the easiest and most used resource for deploying an application. If using a PVC (PersistenceVolumeClaim), all replicas will be using the same Volume and none of it will have its own state.
-
-            - select `keycloak`
-            
-              ![keycloak workload deploy3](extras/images/keycloak_wk_deploy3.jpg)
-              
-            - select `YAML` tab to view the content of yaml. Note the statefulset is created through the controller of Keycloak custom resource.
-
-              ![keycloak workload deploy4](extras/images/keycloak_wk_deploy4.jpg)
-             
-          - Keycloak application `pod` details
-            - select `keycloak-postgresql-`
-             
-              ![keycloak workload pod1](extras/images/keycloak_wk_pod1.jpg) 
-              
-            - select `Logs` to view the keycloak-postgresql container log  
-           
-              ![keycloak workload pod2](extras/images/keycloak_wk_pod2.jpg)
-         
-            - select `keycloak-0`
-             
-              ![keycloak workload pod3](extras/images/keycloak_wk_pod3.jpg) 
-              
-            - select `Logs` to view the keycloak-0 container log  
-             
-              ![keycloak workload pod4](extras/images/keycloak_wk_pod4.jpg)  
-              
-          - Keycloak application `service` details   
-            - select `keycloak`
-            
-              ![keycloak network service1](extras/images/keycloak_net_service1.jpg) 
-             
-            - select `YAML` tab to view the content of yaml. Note the service is created through the controller of Keycloak custom resource.
-            
-              ![keycloak network service2](extras/images/keycloak_net_service2.jpg) 
-            
-          - Keycloak application `route` details
-            - Note: The `keycloak` route is used to access the keycloak realm management console with administrator user login.  See the step **Review Keycloak setup (optional)** below for more details. 
-            
-            - select `keycloak`
-            
-              ![keycloak network route1](extras/images/keycloak_net_route1.jpg) 
-             
-            - select `YAML` tab to view the content of yaml. Note the route is created through the controller of Keycloak custom resource.
-            
-              ![keycloak network route2](extras/images/keycloak_net_route2.jpg)   
-              
-              
-              
-              
-
-[comment]: <> (Optional: Delete a pod to see how quickly another one is created and becomes ready - compared to traditional WAS, it's much faster)
-
 ## Review Deployment
 
 1. Let's review the configuration files used for our deployment. 
-   - Our configuration files are structured for the -k, or `kustomize` option of Openshift CLI.
-   - Kustomize is a separate tool that has been integrated into Openshift CLI.
-   - It allows you to customize yaml without using variables.
-   - You can define a base directory, and one one more override directories to customize the base directory
+   - Our configuration files are structured for the `-k`, or `kustomize` option of Openshift CLI.
+   - Kustomize is a separate tool that has been integrated into Openshift CLI that allows you to customize yaml without using variables.
+   - You can define a base directory and  override directories to customize the base directory
 
-1. Change directory to /openshift-workshop-was/labs/Openshift/RuntimeModernization (if it's already changed) and list the files:
+1. Make sure you are in directory `/openshift-workshop-was/labs/Openshift/RuntimeModernization` or change directory with 
+   ```
+   cd openshift-workshop-was/labs/Openshift/RuntimeModernization
+   ```
+1. List the deploy files:
 
    ```
    ls deploy 
    ```
 
-   And the output shows that we have one base directory, and one override directory:
+   And the output shows that we have one base directory and one override directory:
    
    ```
    base  overlay-apps
@@ -1012,15 +733,14 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
      cat deploy/base/kustomization.yaml
      ```
 
-     Output of yaml:
-     - This is a simple kustomization directory that lists just the yaml files to be deployed.
+     Content of yaml:
+     - This is a simple kustomization directory that just lists the yaml files to be deployed.
        ```
        resources:
        - olapp-cos.yaml
        ```
 
    - The file `olapp-cos.yaml` contains the custom resource definition to deploy the application and will be covered in detail later.
-   - It is placed in the base directory since it is common for all stages of the application, for example, dev, test, prod.
 
 1. Take a look at the files in the `overlay-apps` directory. 
 
@@ -1052,13 +772,10 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
      ```
 
     Note that:
-    - The namespace is defined. This means that all resource that originate from this directory will be applied to the `apps` namespace.
+    - The namespace is defined. This means that all resources originating from this directory will be applied to the `apps` namespace.
     - Resources from the base directory will also be included.
     - You may define additional overlay directories for different environments, each with a different namespace. For example, overlay-test, overlay-prod.
     - The configurations in this directory contain the overrides specific to this environment. 
-    - It is possible to override configurations in the base directory. But that is beyond the scope of this lab.
-    - These configuration files are meant to be stored in source control so that you can version and re-apply them as needed. 
-      - This is the basic concept of `git-ops`. Full coverage of gitops is beyond the scope of this lab.
     - For a real environment, DO NOT store the secret yamls into source control. It is a security expsoure.  See extra credit section on how to secure your secrets.
 
    - To preview the resources that will be applied for a specific override directory, use the `kustomize` option of the Openshift command line. For example,
@@ -1069,48 +786,87 @@ The OpenID Connector Provider Keycloak has already been pre-deployed in the clus
      The output is the same as displayed in [Deploy](#deploy) (Hands-on) section.
      
      
-### Secrets
+## Secrets
 
 Specifying credentials and tokens in plain text is not secure. 
 `Secrets` are used to store sensitive information. 
-The stored data can be referenced by other resources. 
-Special care is taken by OpenShift when handling data from secrets. 
-For example, they will not be logged or shown anywhere. 
+The stored data can be referenced by other resources. OpenShift handles secrets with special care. For example, they will not be logged or shown anywhere. 
 
-There are two secrets, one for database credentials and another for Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
+There are two secrets - one for database credentials and one for Liberty metrics credentials, which is needed to access the `/metrics` endpoint.
 
 
-The file `secret-db-creds.yaml` contains the credentials for database.  It is injected into the container as environment variable via the `secretRef` specification for the Open Liberty Operator in the section. 
+- The file `secret-db-creds.yaml` contains the credentials for the database.  It is injected into the container as an environment variable via the `secretRef` specification for the Open Liberty Operator.
 
-```
-cat deploy/overlay-apps/secret-db-creds.yaml
-```
+  View the content of `secret-db-creds.yaml` file:
+  ```
+  cat deploy/overlay-apps/secret-db-creds.yaml
+  ```
+  Example output:
+  ```
+  kind: Secret
+  apiVersion: v1
+  metadata:
+    name: db-creds
+  data:
+    DB_PASSWORD: ZGIyaW5zdDE=
+    DB_USER: ZGIyaW5zdDE=
+  type: Opaque
+  ```
 
-The file `secret-liberty-creds.yaml` contains the secret to access liberty server.
+- The file `secret-liberty-creds.yaml` contains the secret to access liberty server.
 
-```
-cat deploy/overlay-apps/secret-liberty-creds.yaml
-```
+  View the content of `secret-liberty-creds.yaml` file: 
+  ```
+  cat deploy/overlay-apps/secret-liberty-creds.yaml
+  ```
+  Example output:
+  ```
+  kind: Secret
+  apiVersion: v1
+  metadata:
+    name: liberty-creds
+  stringData:
+    username: admin
+    password: admin
+  type: Opaque
+  ```
 
-Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides in plain text using `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under `data` field. Click on the `YAML` tab of `liberty-creds` secret. The `data` field should contain the credentials in encoded form.
+Note that the first `Secret` provides the credentials in base64 encoded format using the `data` field. The second one provides them in plain text using the `stringData` field. OpenShift will automatically convert the credentials to base64 format and place the information under the `data` field. We can see this by viewing the YAML of the `liberty-creds` secret:
 
-As anyone can decode the credentials, administrators should ensure that only authenticated users have access to `Secrets` using Role-based access control (RBAC).
+- Return to the OpenShift console through a Firefox browser window.
+- Select the `apps` project from the project drop down menu.
+- Click on the **Secrets** tab under **Workloads** from the left menu and search for the `liberty-creds` secret.
 
+  ![secrets1](extras/images/secrets1.png)
 
-### Configmap
+- Navigate to the `YAML` tab. Note that the `data` field contains the credentials in encoded form.
 
-Configmaps allows you to store name/value pairs that can be inject into your container when it starts.
+  ![secrets2](extras/images/secrets2.png)
+
+## Configmap
+
+Configmaps allows you to store name/value pairs that can be injected into your container when it starts.
 For our example, the values of the `configmap.yaml` are injected as environment variables  in the `configMapRef` specification on the _Open Liberty Operator_ in the next section.
 
 ```
 cat deploy/overlay-apps/configmap.yaml
 ```
+Example output:
+```
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cos-config
+data:
+  SEC_TLS_TRUSTDEFAULTCERTS: "true"
+  DB_HOST : "cos-db-liberty.db.svc"
+```
 
-### Open Liberty Operator
+## Open Liberty Operator
 
 We could have created Deployment, Service, and Route resources to deploy the Liberty image. 
 However, for this lab we will use the Open Liberty Operator instead. 
-Open Liberty Operator provides all functionalities of Runtime Component Operator used when deploying traditional WebSphere images in a previous lab. 
+The Open Liberty Operator provides all functionalities of Runtime Component Operator used when deploying traditional WebSphere images in a previous lab. 
 In addition, it also offers Open Liberty specific capabilities, such as day-2 operations (gather trace & dumps) and single sign-on (SSO).
 
 The file `deploy/base/olapp-cos.yaml` looks like:
@@ -1166,66 +922,23 @@ spec:
       app-monitoring: 'true'
 ```
 
-- The `OpenLibertyApplication` is a custom resource supported by the Open Liberty Operator, which is deisgned to help you with Liberty deployment. It allows you to provide Liberty specific configurations (day-2 operations, single sign-on).
+- The `OpenLibertyApplication` is a custom resource supported by the Open Liberty Operator, which is designed to help you with Liberty deployment. It allows you to provide Liberty specific configurations (day-2 operations, single sign-on).
 
-- The application image you pushed earlier to internal image registry is specified for `applicationImage` parameter.
+- The application image you pushed earlier to internal image registry is specified by the `applicationImage` parameter.
 
 - MicroProfile Health endpoints `/health/ready` and `/health/live` are used for readiness and liveness probes.
 
-- Secured service and route are configured with necessary certificates.
-
-- The `configMapRef` surfaces all entries of the  ConfigMap `cos-config`  as environment variables. These contain database host and other settings.
+- The `configMapRef` surfaces all entries of the  ConfigMap `cos-config`  as environment variables.
 
 - The `secretRef` surfaces the entries in the Secret `db-creds` as environment variables. These are the database user and password.
 
 - Enabled application monitoring so that Prometheus can scrape the information provided by MicroProfile Metric's `/metrics` endpoint in Liberty. The `/metrics` endpoint is protected, hence the credentials are provided using the _Secret_ `liberty-creds` you created earlier.
 
+## Cleanup (Hands-on) (Skip this step if you're going to run the next lab [Application Management](https://github.com/IBM/openshift-workshop-was/tree/operational/labs/Openshift/ApplicationManagement) on the same assigned cluster)
 
-## Review Keycloak setup (optional)
+1. The controller for the Open Liberty Operator creates the necessary Deployment, Service, and Route objects for the Customer Order Services application. To list these resources, run the commands:
 
-Keycloak is an OpenID Connect provider that runs on your cluster. 
-It handles user registration, and authentication. 
-Keycloak is the upstream project for Red Hat Single Sign-On (RH-SSO), which is supported as part of IBM Cloud Pak for Applications.
-
-Get the keycloak admin user name and password that you'll use to login to the keycloak console:
-```
-echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data.ADMIN_USERNAME}}') | base64 -d )
-echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data.ADMIN_PASSWORD}}') | base64 -d )
-```
-
-1. In OpenShift console, from the left-panel, click on **Networking** > **Routes**. Then select `keycloak` from the _Project_ drop-down list.
-
-   ![Keycloak Route](extras/images/KeyCloakRoute.jpg)
-
-1. Click on the route URL (under the `Location` column) to launch Keycloak.
-
-   ![Keycloak Console](extras/images/KeyCloakConsole.jpg)
-
-1. Click on `Administration Console`. Enter the user name and password you obtained previously.
-
-   ![Keycloak Console Login](extras/images/KeycloakConsoleLogin.jpg)
-
-1. The next page shows that a realm named `Galaxy` is already created for you.
-
-   ![Galaxy Realm](extras/images/GalaxyRealm.jpg)
-
-1. Click on `Users` and `View All Users`, and note that the user `skywalker` is already created for you.
-
-   ![KeyCloakUsers](extras/images/KeyCloakUsers.jpg)
-
-1. Click on `Clients` followed by `cos_app`
-
-   ![KeyCloakClients](extras/images/KeyCloakClients.jpg)
-
-1. The custom resource `keycloak/clients.yaml` is used to create the `cos_app` client. Double check the contents of the file with what's on the page.
-
-   ![KeyCloakClientCosApp](extras/images/KeyCloakClientCosApp.jpg)
-
-## Cleanup (Hands-on)
-
-1. The controller for the Open Liberty Operator creates the necessary Deployment, Service, and Route objects for Customer Order Services application. To list these resources, run the commands:
-
-   - Reminder: Run `oc project` to confirm you're at the `apps` project before running the following commands.
+   > Reminder: Run `oc project` to confirm you're at the `apps` project before running the following commands.
    
    ```
    oc get deployment
@@ -1244,13 +957,13 @@ echo $(echo $(oc get secret credential-keycloak -n keycloak --template='{{ .data
    cos    ClusterIP   172.21.202.9   <none>        9443/TCP   2d18h
 
    # oc get route
-   NAME   HOST/PORT                                                                                        PATH   SERVICES   PORT       TERMINATION          WILDCARD
-   cos    cos-apps.test1-1-c53a941250098acc3d804eba23ee3789-0000.us-south.containers.appdomain.cloud          cos        9443-tcp   reencrypt/Redirect   None
+   NAME   HOST/PORT                        PATH   SERVICES   PORT       TERMINATION          WILDCARD
+   cos    cos-apps.apps.demo.ibmdte.net           cos        9443-tcp   reencrypt/Redirect   None
    ```
 
-1. To remove these resources, run the command (Reminder: change directory to `openshift-workshop-was/labs/Openshift/RuntimeModernization` if it's not already at the current path.)
+1. To remove these resources, run the command (Ensure you are in directory `openshift-workshop-was/labs/Openshift/RuntimeModernization`)
    
-   - Note: The pre-installed resources such as Open Liberty Operator, DB2, Keycloak, are not removed.
+   > Note: The pre-installed resources such as Open Liberty Operator and DB2, are not removed.
    
    ```
    oc delete -k deploy/overlay-apps
