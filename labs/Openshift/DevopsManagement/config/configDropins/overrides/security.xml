@@ -1,0 +1,19 @@
+<server description="new server">
+
+	<!-- Enable features -->
+	<featureManager>
+		<feature>appSecurity-3.0</feature>
+		<feature>transportSecurity-1.0</feature>
+	</featureManager>
+
+	<basicRegistry id="basic">
+		<user name="skywalker" password="force"/>
+		<user name="admin" password="admin"/>
+	</basicRegistry>
+
+	<administrator-role>
+		<user>admin</user>
+	</administrator-role>
+
+
+</server>

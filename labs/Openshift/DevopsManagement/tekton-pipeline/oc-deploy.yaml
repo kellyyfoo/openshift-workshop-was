@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1alpha1
+kind: Task
+metadata:
+  name: deploy-cm
+spec:
+  workspaces:
+    - name: source
+      description: shared workspace
+  params:
+    - name: target-namespace
+      description: target-namespace
+  steps:
+    - name: deploy-open-liberty
+      image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+      script: |
+        #!/bin/bash
+        cd $(workspaces.source.path)
+        oc kustomize deploy/overlays/$(params.target-namespace)
+        oc apply -k deploy/overlays/$(params.target-namespace) 
+        sleep 10
+        oc delete pod `oc get pods | grep cos | awk '{print $1}'`
+        sleep 10
+        echo "Done deploying open liberty application"
+        sleep 15
+        ROUTE=$(oc get route cos --template='{{ .spec.host }}')
+        echo "http://${ROUTE}/CustomerOrderServicesWeb"
+ 

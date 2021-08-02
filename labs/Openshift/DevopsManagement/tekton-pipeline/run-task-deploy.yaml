@@ -1,0 +1,13 @@
+apiVersion: tekton.dev/v1alpha1
+kind: TaskRun
+metadata:
+  name: depploy-task-run
+spec:
+  taskRef:
+    name: deploy-cm
+  inputs:
+    resources:
+      - name: runtime-modernization-git
+        resourceRef:
+          name: runtime-modernization-git
+  serviceAccountName: pipeline
