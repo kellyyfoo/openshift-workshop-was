@@ -6,14 +6,12 @@ spec:
   params:
     - name: BUILDER_IMAGE
       value: 'quay.io/buildah/stable:v1.11.0'
-    - name: DOCKERFILE
-      value: ./Dockerfile
     - name: TLSVERIFY
       value: 'false'
     - name: target-namespace
       value: dev
     - name: repo-url
-      value: https://github.com/kellyyfoo/devops-management
+      value: https://github.com/kellyyfoo/openshift-workshop-was
   pipelineRef:
     name: tutorial-pipeline
   workspaces:

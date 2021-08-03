@@ -14,7 +14,7 @@ spec:
       image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
       script: |
         #!/bin/bash
-        cd $(workspaces.source.path)
+        cd $(workspaces.source.path)/labs/Openshift/DevopsManagement
         oc kustomize deploy/overlays/$(params.target-namespace)
         oc apply -k deploy/overlays/$(params.target-namespace) 
         sleep 10

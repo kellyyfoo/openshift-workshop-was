@@ -10,9 +10,6 @@ spec:
     - name: BUILDER_IMAGE
       description: Image used to do the build
       default: quay.io/buildah/stable:v1.11.0
-    - name: DOCKERFILE
-      description: Location of the docker file
-      default: ./Dockerfile
     - name: TLSVERIFY
       description: True or False for TLS Verificatoin
       default: "false"
@@ -44,10 +41,10 @@ spec:
       params:
         - name: IMAGE
           value: "image-registry.openshift-image-registry.svc:5000/$(params.target-namespace)/cos:latest"
+        - name: CONTEXT
+          value: $(workspaces.source.path)/labs/Openshift/DevopsManagement
         - name: BUILDER_IMAGE
           value: "quay.io/buildah/stable:v1.11.0"
-        - name: DOCKERFILE
-          value: "/Dockerfile"
         - name: TLSVERIFY
           value: "false"
       runAfter:
